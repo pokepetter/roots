@@ -1,14 +1,10 @@
 from ursina import *
 
 class DraggableOrb(Draggable):
-    types = {
-        "mist": color.azure,
-        "light": color.yellow,
-        "seed": color.green
-    }
 
-    def __init__(self, name, **kwargs):
-        super().__init__()(scale=.1, texture='orb', color=DraggableOrb.types[name], lock=(0,1,1), x=-.5+(i*.14))
+    def __init__(self, orb, x, **kwargs):
+        self.orb = orb
+        super().__init__(scale=.1, texture='orb', color=color.white, lock=(0,1,1), x=x)
 
     def drag():
         self.start_position = self.position
