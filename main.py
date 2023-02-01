@@ -5,7 +5,10 @@ app = Ursina(forced_aspect_ratio=16/9)
 
 window.color = color.black
 level = load_blender_scene('overgrown_temple',
-    reload=True
+    normals=False,
+    uvs=False,
+    reload=True,
+    decimals=2,
     )
 # for name, mesh in level.meshes.items():
 #     print(name, mesh)
@@ -20,7 +23,7 @@ class ThirdPersonController(Entity):
         super().__init__()
         self.speed = 5
         self.shadow = Entity(parent=self, model='plane', texture='radial_gradient', scale=1, y=.005, color=color.black)
-        camera.z = -12
+        camera.z = -15
         camera.fov = 90
         self.camera_parent = EditorCamera(rotation=(35,0,0), move_speed=0, pan_speed=(0,0), rotate_key='rotate_key', ignore=True)
         self.camera_offset = Vec3(0,1,0)
