@@ -208,22 +208,22 @@ def mergeOrbs(orbFirst, orbSecond):
     seed = orbFirst.seed + orbSecond.seed
     droplet = orbFirst.droplet + orbSecond.droplet
 
-    if (photon == 2 and seed == 0 and droplet == 0): return RayOrb()
-    if (photon == 0 and seed == 2 and droplet == 0): return RootOrb()
-    if (photon == 2 and seed == 0 and droplet == 2): return StreamOrb()
-    if (photon == 1 and seed == 1 and droplet == 0): return SpringOrb()
-    if (photon == 0 and seed == 1 and droplet == 1): return SparkOrb()
-    if (photon == 1 and seed == 0 and droplet == 1): return MistOrb()
-    if (photon == 3 and seed == 0 and droplet == 0): return LightOrb()
-    if (photon == 0 and seed == 3 and droplet == 0): return EarthOrb()
-    if (photon == 0 and seed == 0 and droplet == 3): return WaterOrb()
-    if (photon == 2 and seed == 1 and droplet == 0): return DesertOrb()
-    if (photon == 2 and seed == 0 and droplet == 1): return RainbowOrb()
-    if (photon == 0 and seed == 2 and droplet == 1): return StormOrb()
-    if (photon == 0 and seed == 1 and droplet == 2): return IceOrb()
-    if (photon == 1 and seed == 0 and droplet == 2): return RainbowOrb()
-    if (photon == 1 and seed == 2 and droplet == 0): return VolcanoOrb()    
-    if (photon == 1 and seed == 2 and droplet == 0): return LifeOrb()
+    if (photon == 2 and seed == 0 and droplet == 0): return RayOrb
+    if (photon == 0 and seed == 2 and droplet == 0): return RootOrb
+    if (photon == 2 and seed == 0 and droplet == 2): return StreamOrb
+    if (photon == 1 and seed == 1 and droplet == 0): return SpringOrb
+    if (photon == 0 and seed == 1 and droplet == 1): return SparkOrb
+    if (photon == 1 and seed == 0 and droplet == 1): return MistOrb
+    if (photon == 3 and seed == 0 and droplet == 0): return LightOrb
+    if (photon == 0 and seed == 3 and droplet == 0): return EarthOrb
+    if (photon == 0 and seed == 0 and droplet == 3): return WaterOrb
+    if (photon == 2 and seed == 1 and droplet == 0): return DesertOrb
+    if (photon == 2 and seed == 0 and droplet == 1): return RainbowOrb
+    if (photon == 0 and seed == 2 and droplet == 1): return StormOrb
+    if (photon == 0 and seed == 1 and droplet == 2): return IceOrb
+    if (photon == 1 and seed == 0 and droplet == 2): return RainbowOrb
+    if (photon == 1 and seed == 2 and droplet == 0): return VolcanoOrb   
+    if (photon == 1 and seed == 2 and droplet == 0): return LifeOrb
     else: return None
 
 if __name__ == '__main__':
