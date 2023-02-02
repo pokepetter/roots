@@ -88,11 +88,12 @@ class Player(Entity):
     def hp(self):
         return self._hp
 
-    def set_hp(self, value):
+    @hp.setter
+    def hp(self, value):
         value = clamp(value, 0, 100)
         self._hp = value
         self.health_bar.value = value
-        if value >= 0:
+        if value <= 0:
             print('YOU DIED!')
 
 
@@ -104,8 +105,11 @@ class Battle(Entity):
         self.enemy.health_bar = HealthBar(parent=self, position=self.enemy.position + Vec3(-.1,.2,0), scale_x=.2)
         self.player = Player(parent=self)
 
-        self.actions_left = 3
-        self.actions_counter = Button(parent=self, scale=.1, text=f'<white>{self.actions_left} <gray>\nactions \nleft', y=-.3, color=color.violet)
+        self.max_actions = 3
+        self.actions_left = self.max_actions
+        self.actions_counter = Button(parent=self, scale=.1, text=f'<white>{self.actions_left} <gray>\nactions \nleft', y=-.25, color=color.violet)
+        self.actions_counter.original_scale = self.actions_counter.scale
+
         self.orb_parent = Entity(parent=self, y=-.4, scale=.1)
 
         for i in range(5):
@@ -116,6 +120,7 @@ class Battle(Entity):
                 if self.enemy in [hit_info.entity for hit_info in mouse.collisions]:
                     self.enemy.health_bar.value -= 10
                     destroy(d)
+                    self.actions_left -= 1
                     self.reorder_orbs()
 
             d.drop = drop
@@ -123,7 +128,7 @@ class Battle(Entity):
     def reorder_orbs(self):
         print('aaoiwdjawoidj')
 
-        self.actions_counter.text = f'<white>{self.actions_left} <gray>actions left'
+        self.actions_counter.text = f'<white>{self.actions_left} <gray>\nactions \nleft'
         if self.actions_left <= 0:
             self.enemy_turn()
 
@@ -132,11 +137,17 @@ class Battle(Entity):
         print('enemy turn')
         [setattr(e, 'ignore', True) for e in self.orb_parent.children]
         self.player.animate_position(Vec3(0,0,0), duration=.3, curve=curve.in_expo_boomerang)
-        # invoke(self.player.set_hp(self.))
+        self.actions_counter.collision = False
+        self.actions_counter.animate_scale_y(0)
+        self.player.hp -= 10
+        invoke(self.player_turn, delay=1)
 
     def player_turn(self):
         print('player turn')
         [setattr(e, 'ignore', False) for e in self.orb_parent.children]
+        self.actions_counter.animate_scale_y(.1)
+        self.actions_left = self.max_actions
+        self.reorder_orbs()
 
     def on_enable(self):
         mouse.locked = False
@@ -176,4 +187,3 @@ def input(key):
 
 
 app.run()
-
