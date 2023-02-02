@@ -1,11 +1,11 @@
 
 
 class FireOrb:
-    description = 'Deal 10 damage. If enemy is below half health, deal +10 damage.'
+    description = 'Deal 50 damage. If enemy is below half health, deal +10 damage.'
 
     @staticmethod
     def use(enemy):
-        enemy.hp -= 10
+        enemy.hp -= 50
         if enemy.hp < enemy.max_hp/2:
             enemy.hp -= 10
 

@@ -8,12 +8,11 @@ class Player(Entity):
         self.health_bar = HealthBar(parent=self, y=-.45, scale=(.75,.045))
         self.health_bar.x = -self.health_bar.scale_x / 2
         self.max_hp = 100
+        self._hp = self.max_hp
         self.hp = self.max_hp
 
     @property
     def hp(self):
-        if not hasattr(self, '_hp'):
-            return self.max_hp
         return self._hp
 
     @hp.setter
@@ -30,31 +29,37 @@ class Player(Entity):
         self._hp = value
 
 
-class Enemy(Button):
+class Enemy(Entity):
     def __init__(self, **kwargs):
-        super().__init__(model='quad', scale=(.3,.3), color=color.white, texture='rutabaga', collision='box', name='enemy', **kwargs)
+        super().__init__(model='quad', collider='box', scale=(.3,.3), color=color.white, texture='rutabaga', name='enemy', **kwargs)
         self.health_bar = HealthBar(scale_x=.2, world_parent=self, position=Vec3(-.1,.6,0))
         self.health_bar.x = -self.health_bar.scale_x / 2
         self.max_hp = 100
+        self._hp = self.max_hp
         self.hp = self.max_hp
 
     @property
     def hp(self):
-        if not hasattr(self, '_hp'):
-            return self.max_hp
         return self._hp
 
     @hp.setter
     def hp(self, value):
-        print(f'set enemy hp to {value}')
+        print(f'set enemy hp from {self._hp} to {value}')
         value = clamp(value, 0, self.max_hp)
         self.health_bar.value = value
 
-        if value <= 0:
-            print('YOU DIED!')
+        if value < self._hp:
+            print('ow!')
+            self.blink(color.red, duration=.2)
+            self.shake(duration=.2, magnitude=.03)
 
-        elif value > self.hp:
-            print('HEAL :D')
+        if value <= 0:
+            BATTLE.enemies.remove(self)
+            BATTLE.check_for_win()
+            destroy(self, delay=.1)
+
+        elif value > self._hp:
+            print('heal enemy')
 
         self._hp = value
 
@@ -71,7 +76,6 @@ class DraggableOrb(Draggable):
 
     def drop(self):
         mouse.update()
-        # print('--', [hit_info.entity.name for hit_info in mouse.collisions])
         entities_under_mouse = [hit_info.entity for hit_info in mouse.collisions]
         targets = [e for e in entities_under_mouse if isinstance(e, Enemy)]
         if not targets:
@@ -81,7 +85,7 @@ class DraggableOrb(Draggable):
             self.position = self.start_position
             return
         target = targets[0]
-
+        print('----target:', target)
         if isinstance(target, Enemy):
             self.orb_type.use(target)
             print('USED ORB')
@@ -110,6 +114,11 @@ class Battle(Entity):
             d = DraggableOrb(FireOrb, parent=self.orb_parent, x=i)
 
 
+    def on_enable(self):
+        mouse.locked = False
+        mouse.visible = True
+
+
     def reorder_orbs(self):
         self.actions_counter.text = f'<white>{self.actions_left} <gray>\nactions \nleft'
         if self.actions_left <= 0:
@@ -132,9 +141,16 @@ class Battle(Entity):
         self.actions_left = self.max_actions
         self.reorder_orbs()
 
-    def on_enable(self):
-        mouse.locked = False
-        mouse.visible = True
+    def check_for_win(self):
+        if len(self.enemies) <= 0:
+            print('VICTORY!!!')
+            camera.overlay.animate_color(color.black, duration=.8, delay=.5, curve=curve.in_out_expo_boomerang)
+            invoke(self.disable, delay=.5+.4)
+
+    def on_disable(self):
+        camera.z = -15
+
+
 
 if __name__ == '__main__':
     app = Ursina(size=Vec2(1920*.25,1080*.25), borderless=True)
