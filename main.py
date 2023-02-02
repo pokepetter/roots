@@ -62,10 +62,9 @@ class ThirdPersonController(Entity):
 player = ThirdPersonController()
 from ursina.trigger import Trigger
 
-class Enemy(Entity):
+class OverworldEnemy(Entity):
     def __init__(self, **kwargs):
         super().__init__(model='wireframe_cube', collider='box', color=color.magenta, trigger_targets=[player, ], **kwargs)
-
 
     def update(self):
         if self.intersects(player):
@@ -75,114 +74,21 @@ class Enemy(Entity):
             invoke(Func(enter_battle, self), delay=.4)
 
 
-test_enemy = Enemy(position=(-3,0,4))
-from ursina.prefabs.health_bar import HealthBar
-class Player(Entity):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.health_bar = HealthBar(parent=self, y=-.45, scale=(.75,.045))
-        self.health_bar.x = -self.health_bar.scale_x / 2
-        self.hp = 100
+test_enemy = OverworldEnemy(position=(-3,0,4))
 
-    @property
-    def hp(self):
-        return self._hp
-
-    @hp.setter
-    def hp(self, value):
-        value = clamp(value, 0, 100)
-        self._hp = value
-        self.health_bar.value = value
-        if value <= 0:
-            print('YOU DIED!')
-
-
-class Battle(Entity):
-    def __init__(self, **kwargs):
-        super().__init__(parent=camera.ui, enabled=0, **kwargs)
-        self.bg = Entity(parent=self, model='quad', texture='shore', scale_x=16/9, z=10, color=color._32)
-        self.enemy = Button(parent=self, model='quad', scale=(.3,.3), color=color.white, texture='rutabaga', y=.1, collision='box', name='enemy')
-        self.enemy.health_bar = HealthBar(parent=self, position=self.enemy.position + Vec3(-.1,.2,0), scale_x=.2)
-        self.player = Player(parent=self)
-
-        self.max_actions = 3
-        self.actions_left = self.max_actions
-        self.actions_counter = Button(parent=self, scale=.1, text=f'<white>{self.actions_left} <gray>\nactions \nleft', y=-.25, color=color.violet)
-        self.actions_counter.original_scale = self.actions_counter.scale
-
-        self.orb_parent = Entity(parent=self, y=-.4, scale=.1)
-
-        for i in range(5):
-            d = Draggable(parent=self.orb_parent, x=i)
-            def drop(d=d):
-                mouse.update()
-                print('--', [hit_info.entity.name for hit_info in mouse.collisions])
-                if self.enemy in [hit_info.entity for hit_info in mouse.collisions]:
-                    self.enemy.health_bar.value -= 10
-                    destroy(d)
-                    self.actions_left -= 1
-                    self.reorder_orbs()
-
-            d.drop = drop
-
-    def reorder_orbs(self):
-        print('aaoiwdjawoidj')
-
-        self.actions_counter.text = f'<white>{self.actions_left} <gray>\nactions \nleft'
-        if self.actions_left <= 0:
-            self.enemy_turn()
-
-
-    def enemy_turn(self):
-        print('enemy turn')
-        [setattr(e, 'ignore', True) for e in self.orb_parent.children]
-        self.player.animate_position(Vec3(0,0,0), duration=.3, curve=curve.in_expo_boomerang)
-        self.actions_counter.collision = False
-        self.actions_counter.animate_scale_y(0)
-        self.player.hp -= 10
-        invoke(self.player_turn, delay=1)
-
-    def player_turn(self):
-        print('player turn')
-        [setattr(e, 'ignore', False) for e in self.orb_parent.children]
-        self.actions_counter.animate_scale_y(.1)
-        self.actions_left = self.max_actions
-        self.reorder_orbs()
-
-    def on_enable(self):
-        mouse.locked = False
-        mouse.visible = True
-
-
-battle = Battle()
+import battle   # importing this creates global BATTLE
 
 
 def enter_battle(enemy=test_enemy):
     print('enter battle')
     camera.overlay.animate_color(color.clear, duration=.4)
-    battle.enabled = True
-
+    BATTLE.enabled = True
 
 
 def input(key):
     if key == 'space':
         player.position = test_enemy.position
 
-
-
-
-# orb_types = ['leaf', 'mist', 'earth', 'light']
-#
-# orb_parent = Entity(parent=camera.ui, x=-.5)
-# def draw_orb():
-#     orb = Draggable(parent=orb_parent, scale=.1, icon='orb', color=color.random_color(), )
-#     grid_layout(orb_parent.children, spacing=[.05,.05,1])
-#
-#
-# def input(key):
-#     if key == 'space':
-#         for i in range(10):
-#             invoke(draw_orb, delay=i*.1)
 
 
 
