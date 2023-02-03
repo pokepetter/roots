@@ -98,6 +98,8 @@ class Battle(Entity):
     def __init__(self, **kwargs):
         super().__init__(parent=camera.ui, enabled=False, **kwargs)
         self.bg = Entity(parent=self, model='quad', texture='shore', scale_x=16/9, z=10, color=color._32)
+        self.win_screen = Text(parent=self, scale=7, text='VICTORY!', rotation_z=15, origin=(0,0), z=-2, enabled=False, target_scale=7)
+
         self.enemies = [
             Enemy(parent=self, y=.1),
             ]
@@ -144,6 +146,10 @@ class Battle(Entity):
     def check_for_win(self):
         if len(self.enemies) <= 0:
             print('VICTORY!!!')
+            self.win_screen.enabled = True
+            self.win_screen.scale = 4
+            self.win_screen.animate_scale(self.win_screen.target_scale, duration=.4)
+            self.win_screen.fade_out(duration=.4)
             camera.overlay.animate_color(color.black, duration=.8, delay=.5, curve=curve.in_out_expo_boomerang)
             invoke(self.disable, delay=.5+.4)
 
@@ -153,7 +159,7 @@ class Battle(Entity):
 
 
 if __name__ == '__main__':
-    app = Ursina(size=Vec2(1920*.25,1080*.25), borderless=True)
+    app = Ursina(forced_aspect_ratio=16/9)
 
 
 builtins.BATTLE = Battle()
