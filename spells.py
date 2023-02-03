@@ -9,123 +9,133 @@ make the spell randimization on startup feature, nor make enough spells in time.
 class Spells:
 # --------------------------------------------------------------------- level 1
     class Combination_100:
-        class Strike:
-            description = 'strike the enemy and deal 4 damage'
-            def use(enemy, player):
-                enemy.hp -= 4
+        class Photon:
+            description = 'Deal 4 damage'
+            def use(enemy, player, battle):
+                enemy.damage(4 + player.total_strength())
 
     class Combination_010:
-        class Block:
-            description = 'Gain 3 Block'
-            def use(enemy, player):
-                player.block += 3
-                print("Gain 3 Block")
+        class Seed:
+            description = 'Deal 1 damage and heal 1 and Gain 1 Block'
+            def use(enemy, player, battle):
+                enemy.damage(1 + player.total_strength())
+                player.heal(1)
+                player.block += 1
 
     class Combination_001:
-        class Drain:
-            description = 'Deal 2 damage and heal 1'
-            def use(enemy, player):
-                enemy.hp -= 2
-                player.hp += 1
+        class Droplet:
+            description = 'Gain 3 Block'
+            def use(enemy, player, battle):
+                player.block += 3 + player.total_fortitude()
+                print("Gain 3 Block")
 
 # --------------------------------------------------------------------- level 2
     class Combination_200:
         class Ray:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 6 damage if enemy is below half health, otherwise deal 3'
+            def use(enemy, player, battle):
+                if enemy.hp + enemy.hp < enemy.max_hp:
+                    enemy.damage(7 + player.total_strength())
+                else:
+                    enemy.damage(3 + player.total_strength())
 
     class Combination_110:
         class Mist:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 3 damage, then 2 Strength for the rest of this turn'
+            def use(enemy, player, battle):
+                enemy.damage(3 + + player.total_strength())
+                player.temp_strength += 2
 
     class Combination_020:
         class Root:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Gain 1 Strength and Heal 1'
+            def use(enemy, player, battle):
+                player.strength += 1
+                player.heal(1)
 
     class Combination_011:
         class Spring:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Gain 5 Block'
+            def use(enemy, player, battle):
+                player.block += 5 + player.total_fortitude()
 
     class Combination_002:
         class Stream:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Gain 3 Block, then 2 fortitude for the rest of this turn'
+            def use(enemy, player, battle):
+                player.block += 3 + player.total_fortitude()
+                player.temp_fortitude += 2
 
     class Combination_101:
         class Spark:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 1 damage 2 times'
+            def use(enemy, player, battle):
+                enemy.damage(1 + player.total_strength())
+                enemy.damage(1 + player.total_strength())
 
 # --------------------------------------------------------------------- level 3
     class Combination_300:
         class Light:
             description = 'Deal ?? damage'
-            def use(enemy, player):
+            def use(enemy, player, battle):
                 enemy.hp -= 10
 
     class Combination_201:
         class Rainbow:
             description = 'Deal ?? damage'
-            def use(enemy, player):
+            def use(enemy, player, battle):
                 enemy.hp -= 10
 
     class Combination_210:
         class Desert:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Lose 2 Block and gain 2 Actions'
+            def use(enemy, player, battle):
+                if (player.block >= 2):
+                    player.block -= 2
+                    BATTLE.actions_left += 2
 
     class Combination_030:
         class Earth:
             description = 'Deal ?? damage'
-            def use(enemy, player):
+            def use(enemy, player, battle):
                 enemy.hp -= 10
 
     class Combination_120:
         class Volcano:
             description = 'Deal ?? damage'
-            def use(enemy, player):
+            def use(enemy, player, battle):
                 enemy.hp -= 10
 
     class Combination_021:
-        class Tsunami:
+        class Storm:
             description = 'Deal ?? damage'
-            def use(enemy, player):
+            def use(enemy, player, battle):
                 enemy.hp -= 10
 
     class Combination_003:
         class Water:
             description = 'Deal ?? damage'
-            def use(enemy, player):
+            def use(enemy, player, battle):
                 enemy.hp -= 10
 
 
     class Combination_102:
         class Lightning:
             description = 'Deal ?? damage'
-            def use(enemy, player):
+            def use(enemy, player, battle):
                 enemy.hp -= 10
 
 
     class Combination_012:
         class Flood:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 1 damage for each Block you have'
+            def use(enemy, player, battle):
+                enemy.damage(player.block + player.total_strength)
 
     class Combination_111:
-        class Storm:
+        class Life:
             description = 'Deal ?? damage'
-            def use(enemy, player):
+            def use(enemy, player, battle):
                 enemy.hp -= 10
 
 

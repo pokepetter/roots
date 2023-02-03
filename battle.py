@@ -3,13 +3,18 @@ import builtins
 
 from ursina.prefabs.health_bar import HealthBar
 class Player(Entity):
-    def __init__(self, **kwargs):
+    def __init__(self, max_health, **kwargs):
         super().__init__(**kwargs)
-        self.health_bar = HealthBar(parent=self, y=-.45, scale=(.75,.045))
+        self.health_bar = HealthBar(max_value=max_health, parent=self, y=-.45, scale=(.75,.045))
         self.health_bar.x = -self.health_bar.scale_x / 2
-        self.max_hp = 100
-        self._hp = self.max_hp
-        self.hp = self.max_hp
+        self.max_hp = max_health
+        self._hp = max_health
+        self.hp = max_health
+        self.block = 0
+        self.strength = 0
+        self.fortitude = 0
+        self.temp_strength = 0
+        self.temp_fortitude = 0
 
     @property
     def hp(self):
@@ -28,15 +33,40 @@ class Player(Entity):
 
         self._hp = value
 
+    def damage(self, damage):
+        damage_taken = damage - self.block
+        if damage_taken < 0:
+            damage_taken = 0
+            self.block -= damage
+        else:
+            self.block = 0
+        self.health_bar.value -= damage_taken
+        self._hp -= damage_taken
+        if self._hp <= 0:
+            print('YOU DIED!')
+    
+    def heal(self, heal):
+        self._hp += heal
+        self.health_bar.value += heal
+        if (self._hp > self.max_hp):
+            self._hp = self.max_hp
+            self.health_bar.value = self.max_hp
+
+    def total_fortitude(self):
+        return self.fortitude + self.temp_fortitude
+
+    def total_strength(self):
+        return self.strength + self.temp_strength
 
 class Enemy(Entity):
-    def __init__(self, **kwargs):
+    def __init__(self, max_health, **kwargs):
         super().__init__(model='quad', collider='box', scale=(.3,.3), color=color.white, texture='rutabaga', name='enemy', **kwargs)
-        self.health_bar = HealthBar(scale_x=.2, world_parent=self, position=Vec3(-.1,.6,0))
+        self.health_bar = HealthBar(max_value=max_health, scale_x=.2, world_parent=self, position=Vec3(-.1,.6,0))
         self.health_bar.x = -self.health_bar.scale_x / 2
-        self.max_hp = 100
-        self._hp = self.max_hp
-        self.hp = self.max_hp
+        self.max_hp = max_health
+        self._hp = max_health
+        self.hp = max_health
+        self.block = 0
 
     @property
     def hp(self):
@@ -54,14 +84,36 @@ class Enemy(Entity):
             self.shake(duration=.2, magnitude=.03)
 
         if value <= 0:
-            BATTLE.enemies.remove(self)
-            BATTLE.check_for_win()
-            destroy(self, delay=.1)
+            self.die()
 
         elif value > self._hp:
             print('heal enemy')
 
         self._hp = value
+
+    def damage(self, damage):
+        damage_taken = damage - self.block
+        if damage_taken < 0:
+            damage_taken = 0
+            self.block -= damage
+        else:
+            self.block = 0
+        self.health_bar.value -= damage_taken
+        self._hp -= damage_taken
+        if self._hp <= 0:
+            self.die()
+    
+    def heal(self, heal):
+        self._hp += heal
+        self.health_bar.value += heal
+        if (self._hp > self.max_hp):
+            self._hp = self.max_hp
+            self.health_bar.value = self.max_hp
+    
+    def die(self):
+        BATTLE.enemies.remove(self)
+        BATTLE.check_for_win()
+        destroy(self, delay=.1)
 
 
 from orbs import *
@@ -96,7 +148,7 @@ class DraggableOrb(Draggable):
         target = targets[0]
         if isinstance(target, Enemy):
             print('USE ORB')
-            self.spell.use(target, PLAYER)
+            self.spell.use(target, PLAYER, BATTLE)
             destroy(self)
             BATTLE.actions_left -= 1
             BATTLE.reorder_orbs()
@@ -155,11 +207,13 @@ class Battle(Entity):
         super().__init__(parent=camera.ui, enabled=False, **kwargs)
         self.bg = Entity(parent=self, model='quad', texture='shore', scale_x=16/9, z=10, color=color._32)
         self.win_screen = Text(parent=self, scale=7, text='VICTORY!', rotation_z=15, origin=(0,0), z=-2, enabled=False, target_scale=7)
+        self.turn_count = 0
 
         self.enemies = [
-            Enemy(parent=self, y=.1),
+            Enemy(parent=self, max_health=20, y=.1),
             ]
-        builtins.PLAYER = Player(parent=self)
+        self.player = Player(parent=self, max_health=20)
+        builtins.PLAYER = self.player
 
         self.max_actions = 3
         self.actions_left = self.max_actions
@@ -170,7 +224,7 @@ class Battle(Entity):
         self.orb_parent = Entity(parent=self, position=(-(max_orbs/2*.1),-.4), scale=.1)
         self.orb_panel = Entity(parent=self.orb_parent, model='quad', texture='white_cube', color=color.light_gray, scale=(max_orbs,1), texture_scale=(max_orbs,1), z=1, origin_x=-.5)
 
-        for i in range(5):
+        for i in range(7):
             orb_type = [0,0,0]
             for j in range(1):
                 orb_type[random.randint(0,2)] += 1
@@ -191,18 +245,25 @@ class Battle(Entity):
 
     def enemy_turn(self):
         print('enemy turn')
+        for enemy in self.enemies:
+            enemy.block = 0
         [setattr(e, 'ignore', True) for e in self.orb_parent.children]
         PLAYER.animate_position(Vec3(0,0,0), duration=.3, curve=curve.in_expo_boomerang)
         self.actions_counter.collision = False
         self.actions_counter.animate_scale_y(0)
-        PLAYER.hp -= 10        # damage player
+        PLAYER.damage(5)        # damage player
+        self.turn_count += 1
         invoke(self.player_turn, delay=1)
 
     def player_turn(self):
         print('player turn')
+        self.player.block = 0
+        self.player.temp_strength = 0
+        self.player.temp_fortitude = 0
         [setattr(e, 'ignore', False) for e in self.orb_parent.children]
         self.actions_counter.animate_scale_y(.1)
         self.actions_left = self.max_actions
+        self.turn_count += 1
         self.reorder_orbs()
 
     def check_for_win(self):
