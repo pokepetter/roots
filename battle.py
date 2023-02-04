@@ -163,6 +163,7 @@ class Battle(Entity):
 
         if self.actions_left <= 0:
             for orb in self.orb_parent.children:
+                self.bag.append(orb.orb_type)
                 destroy(orb)
             self.enemy_turn()
 

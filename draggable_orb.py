@@ -50,6 +50,7 @@ class DraggableOrb(Draggable):
             target.orb_type = new_orb_type
             BATTLE.actions_left -= 1
             destroy(self)
+            BATTLE.reorder_orbs()
             return
 
         BATTLE.bag.append(self.orb_type)    # add back to the bottom of the bag
