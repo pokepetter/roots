@@ -14,16 +14,16 @@ class SpellTree(Entity):
 
         for y, combo in enumerate(combinations):
             level = sum([int(e) for e in combo.__name__[-3:]])
-            print(f'{combo.__name__}  (lvl: {level})')
+            # print(f'{combo.__name__}  (lvl: {level})')
             orb = DraggableOrb([int(e) for e in combo.__name__[-3:]], parent=layers[level-1], ignore=True)
             orb.tooltip.text = ''
 
             spells = [value for (key,value) in combo.__dict__.items() if not key.startswith('_')]
             for s in spells:
-                print(' aaaaaa', s.__name__, rarity_colors[level-1])
+                # print(' aaaaaa', s.__name__, rarity_colors[level-1])
                 orb.tooltip.text = f'<{rarity_colors[level-1]}>{s.__name__}<default>\n'
                 # orb.tooltip.text += f'<scale:.75>{s.description}'
-                print(orb.tooltip.raw_text)
+                # print(orb.tooltip.raw_text)
 
             orb.tooltip.create_background()
 

@@ -1,5 +1,5 @@
 from ursina import *
-
+from enemy import Enemy
 
 orb_colors = [color.orange, color.lime, color.azure]
 orb_shapes = ['quad', 'quad', 'circle']
@@ -17,7 +17,7 @@ class DraggableOrb(Draggable):
         self.start_position = self.position
 
     def drop(self):
-        from battle import Enemy
+        # from battle import Enemy
         mouse.update()
         entities_under_mouse = [hit_info.entity for hit_info in mouse.collisions]
         targets = [e for e in entities_under_mouse if isinstance(e, (Enemy, DraggableOrb)) and not e == self]
@@ -54,7 +54,9 @@ class DraggableOrb(Draggable):
             target.orb_type = new_orb_type
 
             BATTLE.actions_left -= 1
-            BATTLE.hand.remove(self)
+            if self in BATTLE.hand:
+                BATTLE.hand.remove(self)
+
             destroy(self)
             BATTLE.reorder_orbs()
             return
