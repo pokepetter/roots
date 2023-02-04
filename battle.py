@@ -103,7 +103,7 @@ class Player(Entity):
 
     def create_starter_orbs(self):
         orbs = []
-        for i in range(4):
+        for i in range(5):
             orbs.append([1,0,0])
             orbs.append([0,1,0])
             orbs.append([0,0,1])

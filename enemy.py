@@ -81,4 +81,4 @@ class Enemy(Entity):
             self.block += 3
         else:
             self.strength += 2
-            self.strength_label.text = self.strength
+            self.strength_label.text = f'self.strength'
