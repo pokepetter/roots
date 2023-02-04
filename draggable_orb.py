@@ -11,6 +11,8 @@ class DraggableOrb(Draggable):
         self.tooltip = Tooltip('...')
 
         self.orb_type = orb_type
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
 
     def drag(self):
@@ -29,14 +31,8 @@ class DraggableOrb(Draggable):
 
         target = targets[0]
         if isinstance(target, Enemy):
-            print('USE ORB')
+            print('---------------USE ORB')
             self.spell.use(target, PLAYER, BATTLE)
-            BATTLE.discard.append(self)
-            BATTLE.hand.remove(self)
-            destroy(self)
-            BATTLE.actions_left -= 1
-            BATTLE.reorder_orbs()
-            return
 
         if isinstance(target, DraggableOrb):
             if BATTLE.actions_left <= 0:
@@ -48,18 +44,19 @@ class DraggableOrb(Draggable):
                 self.position = self.start_position
                 return
 
-            print('COMBINE ORBS')
             print_on_screen('COMBINE', position=Vec3(mouse.position.xy, -10), origin=(0,-1))
             new_orb_type = [sum(e) for e in zip(target.orb_type, self.orb_type)]
             target.orb_type = new_orb_type
 
-            BATTLE.actions_left -= 1
-            if self in BATTLE.hand:
-                BATTLE.hand.remove(self)
+        BATTLE.bag.append(self.orb_type)    # add back to the bottom of the bag
+        BATTLE.bag = BATTLE.bag
+        BATTLE.actions_left -= 1
+        destroy(self)
+        BATTLE.reorder_orbs()
+        return
 
-            destroy(self)
-            BATTLE.reorder_orbs()
-            return
+
+
 
 
     @property
@@ -85,13 +82,15 @@ class DraggableOrb(Draggable):
                 # self.sub_orbs[n].model = copy(orb_shapes[i])
                 n += 1
 
-        self.scale = 1.5
-        self.animate_scale(1, duration=.5)
-        print('set orb type to:', value)
+        # self.scale = 1.5
+        # self.animate_scale(1, duration=.5)
+        # print('set orb type to:', value)
 
 
 if __name__ == '__main__':
     app = Ursina()
-    DraggableOrb()
+    import battle
+    DraggableOrb(scale=.1)
+    DraggableOrb(scale=.1, x=.15)
 
     app.run()
