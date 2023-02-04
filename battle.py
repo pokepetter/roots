@@ -140,12 +140,13 @@ class Battle(Entity):
 
     def draw_orbs(self, amount):
         amount = min(amount, len(self.bag))
-        
+
         orb_types_drawn = self.bag[:amount] # get copy of top 5
         self.bag = self.bag[amount:]    # remove top 5
 
         for i, orb_type in enumerate(orb_types_drawn):
             d = DraggableOrb(orb_type, parent=self.orb_parent, x=7)
+            d.orb_type = orb_type
             d.animate_x(i+.5)
 
         self.reorder_orbs()

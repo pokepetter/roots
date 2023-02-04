@@ -7,7 +7,8 @@ orb_shapes = ['quad', 'quad', 'circle']
 class DraggableOrb(Draggable):
     def __init__(self, orb_type=[1,0,1], **kwargs):
         super().__init__(model='quad', color=color.brown, highlight_color=color.brown, texture='orb', **kwargs)
-        self.sub_orbs = [Entity(parent=self, model='circle', z=-.001, scale=.25, color=hsv(20,.5,.25), position=pos) for pos in ((0,.2), (.15,-.1), (-.15,-.1))]
+        self.empty_color = hsv(20,.5,.25)
+        self.sub_orbs = [Entity(parent=self, model='circle', z=-.001, scale=.25, color=self.empty_color, position=pos) for pos in ((0,.2), (.15,-.1), (-.15,-.1))]
         self.tooltip = Tooltip('...')
 
         self.orb_type = orb_type
@@ -47,6 +48,9 @@ class DraggableOrb(Draggable):
             print_on_screen('COMBINE', position=Vec3(mouse.position.xy, -10), origin=(0,-1))
             new_orb_type = [sum(e) for e in zip(target.orb_type, self.orb_type)]
             target.orb_type = new_orb_type
+            BATTLE.actions_left -= 1
+            destroy(self)
+            return
 
         BATTLE.bag.append(self.orb_type)    # add back to the bottom of the bag
         BATTLE.bag = BATTLE.bag
@@ -54,9 +58,6 @@ class DraggableOrb(Draggable):
         destroy(self)
         BATTLE.reorder_orbs()
         return
-
-
-
 
 
     @property
@@ -74,6 +75,9 @@ class DraggableOrb(Draggable):
         self.tooltip.text = f'<{spells.rarity_colors[level-1]}>{self.spell.__name__}\n<default>'
         self.tooltip.text += f'<scale:.75>{self.spell.description}'
         self.tooltip.create_background()
+
+        for e in self.sub_orbs:         # reset suborbs
+            e.color = self.empty_color
 
         n = 0
         for i, particle in enumerate(value):
