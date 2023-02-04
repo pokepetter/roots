@@ -107,36 +107,48 @@ class Battle(Entity):
         self.actions_counter.original_scale = self.actions_counter.scale
 
         self.max_orbs = 7
-        self.orb_parent = Entity(parent=self, position=(-(self.max_orbs/2*.1),-.4), scale=.1)
-        self.orb_panel = Entity(parent=self.orb_parent, model='quad', texture='white_cube', color=color.light_gray, scale=(self.max_orbs,1), texture_scale=(self.max_orbs,1), z=1, origin_x=-.5)
+        self.player_ui = Entity(parent=self, position=(-(self.max_orbs/2*.1),-.4), scale=.1)
+        self.orb_parent = Entity(parent=self.player_ui)
+        self.orb_panel = Entity(parent=self.player_ui, model='quad', texture='white_cube', color=color.light_gray, scale=(self.max_orbs,1), texture_scale=(self.max_orbs,1), z=1, origin_x=-.5)
 
-        self.bag_icon = Button(parent=self.orb_parent, icon='bag', x=8, collider=None)
+        self.bag_icon = Button(parent=self.player_ui, icon='bag', x=self.max_orbs+1, collider=None)
+        for i in range(15): # max bag size
+            orb = DraggableOrb(parent=self.bag_icon, scale=.5, ignore=True)
+        grid_layout(self.bag_icon.children, max_x=5, origin=(0,0), offset=(0,1))
+
 
         from spell_tree import SpellTree
         spell_tree = SpellTree()
-        self.spell_tree_button = Button(parent=self.orb_parent, icon='rainbow', x=9.5, on_click=spell_tree.enable)
-        self.fortitude_label = Button(parent=self.orb_parent, position=(2,1.25), text='fortitude:', tooltip=Tooltip('explain fortitude here'))
-        self.strength_label =  Button(parent=self.orb_parent, position=(5,1.25), text='strength:', tooltip=Tooltip('explain strength here'))
+        self.spell_tree_button = Button(parent=self.player_ui, icon='rainbow', x=self.max_orbs+2.5, on_click=spell_tree.enable)
+        self.fortitude_label = Button(parent=self.player_ui, position=(2,1.25), text='fortitude:', tooltip=Tooltip('explain fortitude here'))
+        self.strength_label =  Button(parent=self.player_ui, position=(5,1.25), text='strength:', tooltip=Tooltip('explain strength here'))
 
         self.bag = self.player.orbs
-        self.hand = []
-        self.discard = []
         self.player_turn()
+
+    @property
+    def bag(self):
+        return self._bag
+    @bag.setter
+    def bag(self, value):
+        self._bag = value
+        [e.disable() for e in self.bag_icon.children]
+        for i, orb_type in enumerate(value):
+            self.bag_icon.children[i].enabled = True
+            self.bag_icon.children[i].orb_type = orb_type
 
 
     def draw_orbs(self, amount):
-        for i in range(amount):
-            if (len(self.bag) == 0):
-                self.bag.extend(self.discard)
-                self.discard.clear()
-            if (len(self.hand) < self.max_orbs):
-                orb_type = self.bag.pop()
-                d = DraggableOrb(orb_type, parent=self.orb_parent, x=7)
-                d.animate_x(i+.5)
-                self.hand.append(d)
-                self.reorder_orbs()
-            else:
-                return
+        amount = min(amount, len(self.bag))
+        
+        orb_types_drawn = self.bag[:amount] # get copy of top 5
+        self.bag = self.bag[amount:]    # remove top 5
+
+        for i, orb_type in enumerate(orb_types_drawn):
+            d = DraggableOrb(orb_type, parent=self.orb_parent, x=7)
+            d.animate_x(i+.5)
+
+        self.reorder_orbs()
 
     def on_enable(self):
         mouse.locked = False
@@ -145,15 +157,14 @@ class Battle(Entity):
     def reorder_orbs(self):
         self.actions_counter.text = f'<white>{self.actions_left} <gray>\nactions \nleft'
 
-        for i, orb in enumerate(self.hand):
+        for i, orb in enumerate(self.orb_parent.children):
             orb.animate_x(i+.5, duration=abs(orb.x-(i+.5))*.1)
 
         if self.actions_left <= 0:
-            for orb in self.hand:
-                self.discard.append(deepcopy(orb.orb_type))
+            for orb in self.orb_parent.children:
                 destroy(orb)
-            self.hand.clear()
             self.enemy_turn()
+
 
     def enemy_turn(self):
         print('enemy turn')
