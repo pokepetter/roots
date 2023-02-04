@@ -39,11 +39,14 @@ class Spells:
                 else:
                     enemy.damage(3 + player.total_strength())
 
+            def get_description(enemy, player, battle):
+                return f'Deal {6 + player.total_strength()} damage if enemy is below half health, otherwise deal 3'
+
     class Combination_110:
         class Mist:
             description = 'Deal 3 damage, then 2 Strength for the rest of this turn'
             def use(enemy, player, battle):
-                enemy.damage(3 + + player.total_strength())
+                enemy.damage(3 + player.total_strength())
                 player.temp_strength += 2
 
     class Combination_020:
@@ -82,9 +85,9 @@ class Spells:
 
     class Combination_201:
         class Rainbow:
-            description = 'Deal ?? damage'
+            description = 'Draw 1 orb, then deal 1 damage for each Orb in Hand'
             def use(enemy, player, battle):
-                enemy.hp -= 10
+                battle.draw_orbs(1)
 
     class Combination_210:
         class Desert:
@@ -96,9 +99,9 @@ class Spells:
 
     class Combination_030:
         class Earth:
-            description = 'Deal ?? damage'
+            description = 'Deal 1 damage for each Block you have'
             def use(enemy, player, battle):
-                enemy.hp -= 10
+                enemy.damage(player.block + player.total_strength)
 
     class Combination_120:
         class Volcano:
@@ -114,23 +117,26 @@ class Spells:
 
     class Combination_003:
         class Water:
-            description = 'Deal ?? damage'
+            description = 'Gain 6 Block'
             def use(enemy, player, battle):
-                enemy.hp -= 10
+                player.block += 6 + player.total_fortitude()
 
 
     class Combination_102:
         class Lightning:
-            description = 'Deal ?? damage'
+            description = 'Deal 3 damage and gain 1 Action'
             def use(enemy, player, battle):
-                enemy.hp -= 10
+                enemy.damage(3 + player.total_strength())
+                battle.actions_left += 1
 
 
     class Combination_012:
         class Flood:
-            description = 'Deal 1 damage for each Block you have'
+            description = 'Gain 1 Block twice, then gain 1 Fortitude'
             def use(enemy, player, battle):
-                enemy.damage(player.block + player.total_strength)
+                player.block += 1 + player.total_fortitude()
+                player.block += 1 + player.total_fortitude()
+                player.fortitude += 1
 
     class Combination_111:
         class Life:
