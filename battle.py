@@ -153,7 +153,7 @@ class Battle(Entity):
 
         from spell_tree import SpellTree
         spell_tree = SpellTree()
-        self.spell_tree_button = Button(parent=self.player_ui, model='circle', scale=.75, texture='rainbow', x=self.max_orbs+2.5, color=color.light_gray, on_click=spell_tree.enable)        
+        self.spell_tree_button = Button(parent=self.player_ui, model='circle', scale=.75, texture='rainbow', x=self.max_orbs+2.5, color=color.light_gray, on_click=spell_tree.enable)
         self.fortitude_label = Button(parent=self.player_ui, position=(2,1.25), text=f'{self.player.fortitude} + {self.player.temp_fortitude}', tooltip=Tooltip('Fortitude increases Block gained'), color=color.gray)
         self.strength_label =  Button(parent=self.player_ui, position=(5,1.25), text=f'{self.player.strength} + {self.player.temp_strength}', tooltip=Tooltip('Strength increases Damage dealt'), color=color.orange)
         self.merge_result = Button(parent=self.player_ui, position=(-2,1.25), text='', Tooltip=Tooltip('The resulting spell if the chosen orbs are merged'), color=color.black66)
