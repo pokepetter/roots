@@ -5,7 +5,8 @@ class SpellTree(Entity):
     def __init__(self, enabled=False, **kwargs):
         super().__init__(parent=camera.ui, enabled=enabled, z=-10, **kwargs)
         from draggable_orb import DraggableOrb
-        self.bg = Sprite('shore', parent=self, ppu=1080, color=hsv(0,0,0,.9), z=2)
+        self.bg = Sprite('shore', parent=self, ppu=1080, color=hsv(0,0,0,.95), z=2, collider='box')
+        self.close_button = Button(parent=self, scale=.1, color=color._16, text='<gray>x', position=(.5,-.4), on_click=self.disable)
 
         combinations = [value for (key,value) in Spells.__dict__.items() if key.startswith('Combination_')]
         # print(combinations)
@@ -20,10 +21,7 @@ class SpellTree(Entity):
 
             spells = [value for (key,value) in combo.__dict__.items() if not key.startswith('_')]
             for s in spells:
-                # print(' aaaaaa', s.__name__, rarity_colors[level-1])
-                orb.tooltip.text = f'<{rarity_colors[level-1]}>{s.__name__}<default>\n'
-                # orb.tooltip.text += f'<scale:.75>{s.description}'
-                # print(orb.tooltip.raw_text)
+                orb.tooltip.text = f'<{rarity_colors[level-1]}>{s.__name__}<default>\n' + f'<scale:.75>{s.description}'
 
             orb.tooltip.create_background()
 

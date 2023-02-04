@@ -7,9 +7,9 @@ orb_shapes = ['quad', 'quad', 'circle']
 
 class DraggableOrb(Draggable):
     def __init__(self, orb_type=[1,0,1], **kwargs):
-        super().__init__(model='quad', color=color.brown, highlight_color=color.brown, texture='orb', **kwargs)
-        self.empty_color = hsv(20,.5,.25)
-        self.sub_orbs = [Entity(parent=self, model='circle', z=-.001, scale=.25, color=self.empty_color, position=pos) for pos in ((0,.2), (.15,-.1), (-.15,-.1))]
+        super().__init__(model='quad', color=hsv(0,0,.9), texture='roots_orb', **kwargs)
+        self.empty_color = color.clear
+        self.sub_orbs = [Entity(parent=self, model='quad', texture='orb', z=-.001, scale=.3, color=self.empty_color, position=Vec2(pos)*.8) for pos in ((0,.2), (.15,-.1), (-.15,-.1))]
         self.tooltip = Tooltip('...')
 
         self.orb_type = orb_type
@@ -34,6 +34,7 @@ class DraggableOrb(Draggable):
 
     def drag(self):
         self.start_position = self.position
+        self.z = -10
 
     def drop(self):
         BATTLE.merge_result.text = ""
