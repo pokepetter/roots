@@ -64,7 +64,7 @@ class Spells:
 
     class Combination_002:
         class Stream:
-            description = 'Gain 2 Block, then gain 2 fortitude this turn'
+            description = 'Gain 2 Block, then gain 3 fortitude this turn'
             def use(enemy, player, battle):
                 player.block += 3 + player.total_fortitude()
                 player.temp_fortitude += 2

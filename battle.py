@@ -103,7 +103,7 @@ class Player(Entity):
 
     def create_starter_orbs(self):
         orbs = []
-        for i in range(5):
+        for i in range(8):
             orbs.append([1,0,0])
             orbs.append([0,1,0])
             orbs.append([0,0,1])
@@ -124,7 +124,7 @@ class Battle(Entity):
         self.turn_count = 1
 
         self.enemies = [
-            Enemy(parent=self, max_health=30, y=.1),
+            Enemy(parent=self, max_health=100, y=.1),
             ]
         self.player = Player(parent=self, max_health=20)
         builtins.PLAYER = self.player
