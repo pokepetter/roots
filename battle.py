@@ -287,6 +287,10 @@ class Battle(Entity):
             orb.animate_x(i+.5, duration=abs(orb.x-(i+.5))*.1)
 
         if self.actions_left <= 0:
+            for orb in self.hand:
+                self.discard.append(orb.orb_type)
+                destroy(orb)
+            self.hand.clear()
             self.enemy_turn()
 
     def enemy_turn(self):
