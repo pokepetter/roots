@@ -10,6 +10,7 @@ class Player(Entity):
         self.max_hp = max_health
         self._hp = max_health
         self.hp = max_health
+
         self.block = 0
         self.strength = 0
         self.fortitude = 0
@@ -46,7 +47,7 @@ class Player(Entity):
         self._hp -= damage_taken
         if self._hp <= 0:
             print('YOU DIED!')
-    
+
     def heal(self, heal):
         self._hp += heal
         self.health_bar.value += heal
@@ -124,21 +125,20 @@ class Enemy(Entity):
         self._hp -= damage_taken
         if self._hp <= 0:
             self.die()
-    
+
     def heal(self, heal):
         self._hp += heal
         self.health_bar.value += heal
         if (self._hp > self.max_hp):
             self._hp = self.max_hp
             self.health_bar.value = self.max_hp
-    
+
     def die(self):
         BATTLE.enemies.remove(self)
         BATTLE.check_for_win()
         destroy(self, delay=.1)
 
 
-from orbs import *
 from spells import get_spell_for_combination
 import spells
 
@@ -250,10 +250,17 @@ class Battle(Entity):
         self.orb_parent = Entity(parent=self, position=(-(self.max_orbs/2*.1),-.4), scale=.1)
         self.orb_panel = Entity(parent=self.orb_parent, model='quad', texture='white_cube', color=color.light_gray, scale=(self.max_orbs,1), texture_scale=(self.max_orbs,1), z=1, origin_x=-.5)
 
+        self.bag_icon = Button(parent=self.orb_parent, icon='bag', x=8, collider=None)
+        spell_tree = Entity()
+        self.spell_tree_button = Button(parent=self.orb_parent, icon='rainbow', x=9.5, on_click=spell_tree.enable)
+        self.fortitude_label = Button(parent=self.orb_parent, position=(2,1.25), text='fortitude:', tooltip=Tooltip('explain fortitude here'))
+        self.strength_label =  Button(parent=self.orb_parent, position=(5,1.25), text='strength:', tooltip=Tooltip('explain strength here'))
+
         self.bag = self.player.orbs
         self.hand = []
         self.discard = []
         self.player_turn()
+
 
     def draw_orbs(self, amount):
         for i in range(amount):
@@ -262,7 +269,8 @@ class Battle(Entity):
                 self.discard.clear()
             if (len(self.hand) < self.max_orbs):
                 orb = self.bag.pop()
-                d = DraggableOrb(orb, parent=self.orb_parent, x=i+.5)
+                d = DraggableOrb(orb, parent=self.orb_parent, x=7)
+                d.animate_x(i+.5)
                 self.hand.append(d)
                 self.reorder_orbs()
             else:
@@ -276,7 +284,7 @@ class Battle(Entity):
         self.actions_counter.text = f'<white>{self.actions_left} <gray>\nactions \nleft'
 
         for i, orb in enumerate(self.hand):
-            orb.x = i+.5
+            orb.animate_x(i+.5, duration=abs(orb.x-(i+.5))*.1)
 
         if self.actions_left <= 0:
             self.enemy_turn()
