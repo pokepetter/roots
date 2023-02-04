@@ -1,3 +1,5 @@
+from ursina import *
+
 """
 I couldn't use dict for this, since you can't define functions inside those.
 However, this mess of classes will work. Under each combination, you can define
@@ -146,33 +148,39 @@ def get_spell_for_combination(combination=[1,0,0]):
 
 rarity_colors = ['white', 'lime', 'gold']
 
+from draggable_orb import DraggableOrb
+class SpellTree(Entity):
+    def __init__(self, enabled=False, **kwargs):
+        super().__init__(parent=camera.ui, enabled=enabled, **kwargs)
+        self.bg = Sprite('shore', parent=self, ppu=1080, color=hsv(0,0,0,.8), z=100)
+
+        combinations = [value for (key,value) in Spells.__dict__.items() if key.startswith('Combination_')]
+        # print(combinations)
+        orb_parent = Entity(parent=self, scale=.1, y=.25)
+        layers = [Entity(parent=orb_parent, y=-i*2) for i in range(3)]
+
+        for y, combo in enumerate(combinations):
+            level = sum([int(e) for e in combo.__name__[-3:]])
+            print(f'{combo.__name__}  (lvl: {level})')
+            orb = DraggableOrb([int(e) for e in combo.__name__[-3:]], parent=layers[level-1], ignore=True)
+            orb.tooltip.text = ''
+
+            spells = [value for (key,value) in combo.__dict__.items() if not key.startswith('_')]
+            for s in spells:
+                print(' ', s.__name__)
+                orb.tooltip.text += f'<{rarity_colors[level-1]}>{s.__name__}\n'
+                orb.tooltip.text += f'<scale:.75>{s.description}'
+
+            orb.tooltip.create_background()
+
+        for e in layers:
+            grid_layout(e.children, origin=(0,0,0), max_x=10)
+
+
+
 if __name__ == '__main__':
-    from ursina import *
     app = Ursina()
-    Sprite('shore', parent=camera.ui, ppu=1080, color=color._32, z=100)
-    from battle import DraggableOrb
-
-    combinations = [value for (key,value) in Spells.__dict__.items() if key.startswith('Combination_')]
-    # print(combinations)
-    orb_parent = Entity(parent=camera.ui, scale=.1, y=.25)
-    layers = [Entity(parent=orb_parent, y=-i*2) for i in range(3)]
-
-    for y, combo in enumerate(combinations):
-        level = sum([int(e) for e in combo.__name__[-3:]])
-        print(f'{combo.__name__}  (lvl: {level})')
-        orb = DraggableOrb([int(e) for e in combo.__name__[-3:]], parent=layers[level-1])
-        orb.tooltip.text = ''
-
-        spells = [value for (key,value) in combo.__dict__.items() if not key.startswith('_')]
-        for s in spells:
-            print(' ', s.__name__)
-            orb.tooltip.text += f'<{rarity_colors[level-1]}>{s.__name__}\n'
-            orb.tooltip.text += f'<scale:.75>{s.description}'
-
-        orb.tooltip.create_background()
-
-    for e in layers:
-        grid_layout(e.children, origin=(0,0,0), max_x=10)
+    st = SpellTree(enabled=True)
 
     EditorCamera()
     app.run()
