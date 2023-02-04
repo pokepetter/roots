@@ -143,9 +143,6 @@ from spells import get_spell_for_combination
 import spells
 from draggable_orb import DraggableOrb
 
-orb_colors = [color.orange, color.lime, color.azure]
-orb_shapes = ['quad', 'quad', 'circle']
-
 
 class Battle(Entity):
     def __init__(self, **kwargs):

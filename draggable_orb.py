@@ -1,6 +1,9 @@
 from ursina import *
 
 
+orb_colors = [color.orange, color.lime, color.azure]
+orb_shapes = ['quad', 'quad', 'circle']
+
 class DraggableOrb(Draggable):
     def __init__(self, orb_type=[1,0,1], **kwargs):
         super().__init__(model='quad', color=color.brown, highlight_color=color.brown, texture='orb', **kwargs)
@@ -63,10 +66,11 @@ class DraggableOrb(Draggable):
     @orb_type.setter
     def orb_type(self, value):
         self._orb_type = value
-        from spells import get_spell_for_combination
-        self.spell = get_spell_for_combination(value)
+        import spells
+        self.spell = spells.get_spell_for_combination(value)
 
         level = sum(value)
+        print('------------', self.spell)
         self.tooltip.text = f'<{spells.rarity_colors[level-1]}>{self.spell.__name__}\n<default>'
         self.tooltip.text += f'<scale:.75>{self.spell.description}'
         self.tooltip.create_background()
