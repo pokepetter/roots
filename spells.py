@@ -71,17 +71,19 @@ class Spells:
 
     class Combination_101:
         class Spark:
-            description = 'Deal 1 damage 2 times'
+            description = 'Deal 2 damage twice'
             def use(enemy, player, battle):
-                enemy.damage(1 + player.total_strength())
-                enemy.damage(1 + player.total_strength())
+                enemy.damage(2 + player.total_strength())
+                enemy.damage(2 + player.total_strength())
 
 # --------------------------------------------------------------------- level 3
     class Combination_300:
         class Light:
-            description = 'Deal 1 damage for each Orb in Discard'
+            description = 'Deal 2 damage twice then gain 1 Strength'
             def use(enemy, player, battle):
-                enemy.damage(len(battle.discard) + player.total_strength())
+                enemy.damage(2 + player.total_strength())
+                enemy.damage(2 + player.total_strength())
+                player.strength += 1
 
     class Combination_201:
         class Rainbow:
@@ -116,7 +118,8 @@ class Spells:
         class Storm:
             description = 'Draw 2 orbs and gain 1 Fortitude'
             def use(enemy, player, battle):
-                enemy.hp -= 10
+                battle.draw_orbs(2)
+                player.fortitude += 1
 
     class Combination_003:
         class Water:
