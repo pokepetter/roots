@@ -11,7 +11,8 @@ class Player(Entity):
         self._hp = max_health
         self.hp = max_health
 
-        self.block_bar = HealthBar(max_value=30, parent=self, y=-.45, scale=(.75,.045))
+        self.block_bar = HealthBar(max_value=30, parent=self, y=-.45, scale=(.75,.045/3), color=color.clear, bar_color=hsv(0,0,1,.5), z=-1, show_text=False, show_lines=True, highlight_color=color.clear)
+        self.block_bar.x = -self.health_bar.scale_x / 2
         self.block = 0
 
         self.strength = 0
@@ -37,6 +38,16 @@ class Player(Entity):
             print('HEAL :D')
 
         self._hp = value
+
+    @property
+    def block(self):
+        return self._block
+    @block.setter
+    def block(self, value):
+        self._block = value
+        self.block_bar.value = value
+
+
 
     def damage(self, damage):
         damage_taken = damage - self.block
