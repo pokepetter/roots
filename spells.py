@@ -44,7 +44,7 @@ class Spells:
 
     class Combination_110:
         class Mist:
-            description = 'Deal 3 damage, then 2 Strength for the rest of this turn'
+            description = 'Deal 3 damage, then gain 2 Strength this turn'
             def use(enemy, player, battle):
                 enemy.damage(3 + player.total_strength())
                 player.temp_strength += 2
@@ -64,7 +64,7 @@ class Spells:
 
     class Combination_002:
         class Stream:
-            description = 'Gain 2 Block, then 2 fortitude for the rest of this turn'
+            description = 'Gain 2 Block, then gain 2 fortitude this turn'
             def use(enemy, player, battle):
                 player.block += 3 + player.total_fortitude()
                 player.temp_fortitude += 2
@@ -105,21 +105,24 @@ class Spells:
 
     class Combination_120:
         class Volcano:
-            description = 'Deal ?? damage'
+            description = 'Double Strength, take 4 damage'
             def use(enemy, player, battle):
-                enemy.hp -= 10
+                player.strength = player.strength * 2
+                player.temp_strength = player.temp_strength * 2
+                player.damage(2)
 
     class Combination_021:
         class Storm:
-            description = 'Deal ?? damage'
+            description = 'Draw 2 orbs and gain 1 Fortitude'
             def use(enemy, player, battle):
                 enemy.hp -= 10
 
     class Combination_003:
         class Water:
-            description = 'Gain 6 Block'
+            description = 'Gain 2 Block and gain 1 Action'
             def use(enemy, player, battle):
-                player.block += 6 + player.total_fortitude()
+                player.block += 2 + player.total_fortitude()
+                battle.actions_left += 1
 
 
     class Combination_102:
@@ -140,9 +143,9 @@ class Spells:
 
     class Combination_111:
         class Life:
-            description = 'Deal ?? damage'
+            description = 'Remove all temporary and permanent Strength and Fortitude to heal 1 for each'
             def use(enemy, player, battle):
-                enemy.hp -= 10
+                amount = player.total_fortitude
 
 
 def get_spell_for_combination(combination=[1,0,0]):
