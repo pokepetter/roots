@@ -11,8 +11,12 @@ class Player(Entity):
         self._hp = max_health
         self.hp = max_health
 
-        self.block_bar = HealthBar(max_value=30, parent=self, y=-.45, scale=(.75,.045))
+        self._block = 0
         self.block = 0
+        self.block_bar = HealthBar(max_value=30, parent=self, y=-.3, scale=(.20,.045))
+        self.block_bar.x = -self.block_bar.scale_x / 2
+        self.block_bar.bar.color = color.gray
+        self.block_bar.value = 0
 
         self.strength = 0
         self.fortitude = 0
@@ -24,6 +28,16 @@ class Player(Entity):
     @property
     def hp(self):
         return self._hp
+
+    @property
+    def block(self):
+        return self._block
+
+    @block.setter
+    def block(self, value):
+        value = clamp(value, 0, 30)
+        self.block_bar.value = value
+        self._block = value
 
     @hp.setter
     def hp(self, value):
@@ -77,7 +91,7 @@ class Player(Entity):
 
     def create_starter_orbs(self):
         orbs = []
-        for i in range(5):
+        for i in range(4):
             orbs.append([1,0,0])
             orbs.append([0,1,0])
             orbs.append([0,0,1])
@@ -92,10 +106,10 @@ class Battle(Entity):
         super().__init__(parent=camera.ui, enabled=False, **kwargs)
         self.bg = Entity(parent=self, model='quad', texture='shore', scale_x=16/9, z=10, color=color._32)
         self.win_screen = Text(parent=self, scale=7, text='VICTORY!', rotation_z=15, origin=(0,0), z=-2, enabled=False, target_scale=7)
-        self.turn_count = 0
+        self.turn_count = 1
 
         self.enemies = [
-            Enemy(parent=self, max_health=20, y=.1),
+            Enemy(parent=self, max_health=30, y=.1),
             ]
         self.player = Player(parent=self, max_health=20)
         builtins.PLAYER = self.player
@@ -112,7 +126,7 @@ class Battle(Entity):
         self.orb_panel = Entity(parent=self.player_ui, model='quad', texture='white_cube', color=color.light_gray, scale=(self.max_orbs,1), texture_scale=(self.max_orbs,1), z=1, origin_x=-.5)
 
         self.bag_icon = Button(parent=self.player_ui, icon='bag', x=self.max_orbs+1, collider=None)
-        for i in range(15): # max bag size
+        for i in range(25): # max bag size
             orb = DraggableOrb(parent=self.bag_icon, scale=.5, ignore=True)
         grid_layout(self.bag_icon.children, max_x=5, origin=(0,0), offset=(0,1))
 
@@ -120,10 +134,13 @@ class Battle(Entity):
         from spell_tree import SpellTree
         spell_tree = SpellTree()
         self.spell_tree_button = Button(parent=self.player_ui, icon='rainbow', x=self.max_orbs+2.5, on_click=spell_tree.enable)
-        self.fortitude_label = Button(parent=self.player_ui, position=(2,1.25), text='fortitude:', tooltip=Tooltip('explain fortitude here'))
-        self.strength_label =  Button(parent=self.player_ui, position=(5,1.25), text='strength:', tooltip=Tooltip('explain strength here'))
+        self.fortitude_label = Button(parent=self.player_ui, position=(2,1.25), text=f'{self.player.fortitude} + {self.player.temp_fortitude}', tooltip=Tooltip('Fortitude increases Block gained'), color=color.gray)
+        self.strength_label =  Button(parent=self.player_ui, position=(5,1.25), text=f'{self.player.strength} + {self.player.temp_strength}', tooltip=Tooltip('Strength increases Damage dealt'), color=color.orange)
+        self.merge_result = Button(parent=self.player_ui, position=(-2,1.25), text='', Tooltip=Tooltip('The resulting spell if the chosen orbs are merged'), color=color.black66)
+        self.merge_result.scale_x = 4
 
         self.bag = self.player.orbs
+        random.shuffle(self.bag)
         self.player_turn()
 
     @property
@@ -161,6 +178,7 @@ class Battle(Entity):
         for i, orb in enumerate(self.orb_parent.children):
             orb.animate_x(i+.5, duration=abs(orb.x-(i+.5))*.1)
 
+        self.check_for_win()
         if self.actions_left <= 0:
             for orb in self.orb_parent.children:
                 self.bag.append(orb.orb_type)
@@ -170,23 +188,29 @@ class Battle(Entity):
 
     def enemy_turn(self):
         print('enemy turn')
+        if (len(self.enemies) == 0):
+            self.check_for_win()
+            return
         for enemy in self.enemies:
             enemy.block = 0
         [setattr(e, 'ignore', True) for e in self.orb_parent.children]
         PLAYER.animate_position(Vec3(0,0,0), duration=.3, curve=curve.in_expo_boomerang)
         self.actions_counter.collision = False
         self.actions_counter.animate_scale_y(0)
-        PLAYER.damage(5)        # damage player
+        enemy = self.enemies[0]
+        enemy.do_next_move(self.turn_count)
         self.turn_count += 1
+        enemy.update_next_move_text(self.turn_count)
         invoke(self.player_turn, delay=1)
 
     def player_turn(self):
         print('player turn')
+        self.check_for_win()
         self.player.prepare_for_new_turn(self)
+        self.update_gui()
         [setattr(e, 'ignore', False) for e in self.orb_parent.children]
         self.actions_counter.animate_scale_y(.1)
         self.actions_left = self.max_actions
-        self.turn_count += 1
         self.draw_orbs(self.player.orb_draw_count)
         self.reorder_orbs()
 
@@ -203,7 +227,9 @@ class Battle(Entity):
     def on_disable(self):
         camera.z = -15
 
-
+    def update_gui(self):
+        self.fortitude_label.text = f'{self.player.fortitude} + {self.player.temp_fortitude}'
+        self.strength_label.text = f'{self.player.strength} + {self.player.temp_strength}'
 
 if __name__ == '__main__':
     app = Ursina(forced_aspect_ratio=16/9)

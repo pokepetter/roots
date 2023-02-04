@@ -103,8 +103,8 @@ class Spells:
         class Earth:
             description = 'Deal 2 Damage and Heal 1 for each Damage'
             def use(enemy, player, battle):
-                enemy.damage(2 + player.total_strength)
-                player.heal(2 + player.total_strength)
+                enemy.damage(2 + player.total_strength())
+                player.heal(2 + player.total_strength())
 
     class Combination_120:
         class Volcano:
@@ -147,10 +147,9 @@ class Spells:
 
     class Combination_111:
         class Life:
-            description = 'Gain 3 Block and Heal 2'
+            description = 'Gain 6 Block'
             def use(enemy, player, battle):
-                player.block += 3 + player.total_fortitude()
-                player.heal(2)
+                player.block += 6 + player.total_fortitude()
 
 
 def get_spell_for_combination(combination=[1,0,0]):

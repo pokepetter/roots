@@ -1,7 +1,8 @@
 from ursina import *
 from enemy import Enemy
+import spells
 
-orb_colors = [color.orange, color.lime, color.azure]
+orb_colors = [color.yellow, color.lime, color.azure]
 orb_shapes = ['quad', 'quad', 'circle']
 
 class DraggableOrb(Draggable):
@@ -16,10 +17,26 @@ class DraggableOrb(Draggable):
             setattr(self, key, value)
 
 
+    def update(self):
+        super().update()
+        if self.dragging:
+            entities_under_mouse = [hit_info.entity for hit_info in mouse.collisions]
+            targets = [e for e in entities_under_mouse if isinstance(e, (DraggableOrb)) and not e == self]
+            if not targets:
+                BATTLE.merge_result.text = ""
+                return
+            target = targets[0]
+            if isinstance(target, DraggableOrb):
+                new_orb_type = [sum(e) for e in zip(target.orb_type, self.orb_type)]
+                spell = spells.get_spell_for_combination(new_orb_type)
+                BATTLE.merge_result.text = f'<{spells.rarity_colors[sum(target.orb_type)-1]}>{spell.__name__}\n<default>' 
+                BATTLE.merge_result.text += f'<scale:.75>{spell.description}'
+
     def drag(self):
         self.start_position = self.position
 
     def drop(self):
+        BATTLE.merge_result.text = ""
         # from battle import Enemy
         mouse.update()
         entities_under_mouse = [hit_info.entity for hit_info in mouse.collisions]
@@ -56,6 +73,7 @@ class DraggableOrb(Draggable):
         BATTLE.bag.append(self.orb_type)    # add back to the bottom of the bag
         BATTLE.bag = BATTLE.bag
         BATTLE.actions_left -= 1
+        BATTLE.update_gui()
         destroy(self)
         BATTLE.reorder_orbs()
         return

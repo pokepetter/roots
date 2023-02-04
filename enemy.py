@@ -11,6 +11,12 @@ class Enemy(Entity):
         self._hp = max_health
         self.hp = max_health
         self.block = 0
+        self.strength = 0
+        self.enemy_ui = Entity(parent=self, position=(0.5,.5), scale=.2)
+        self.strength_label = Button(parent=self.enemy_ui, position=(1,-1.25), text=f'{self.strength}', tooltip=Tooltip('Strength increases Damage dealt'), color=color.orange)
+        self.intention_label = Button(parent=self, position=(-1,0), text='', tooltip=Tooltip('Next move that the enemy will perform'), color=color.black66, scale=.4)
+        self.intention_label.scale_x = 1
+        self.update_next_move_text(1)
 
     @property
     def hp(self):
@@ -58,3 +64,21 @@ class Enemy(Entity):
         BATTLE.enemies.remove(self)
         BATTLE.check_for_win()
         destroy(self, delay=.1)
+
+    def update_next_move_text(self, turn_count):
+        if (turn_count % 3 == 1):
+            self.intention_label.text = f'Deal {5 + self.strength} Damage'
+        elif (turn_count % 3 == 2):
+            self.intention_label.text = f"Deal {3 + self.strength} Damage \nand Gain 3 Block"
+        else:
+            self.intention_label.text = "Gain 2 Strength"
+
+    def do_next_move(self, turn_count):
+        if (turn_count % 3 == 1):
+            PLAYER.damage(5 + self.strength)
+        elif (turn_count % 3 == 2):
+            PLAYER.damage(3 + self.strength)
+            self.block += 3
+        else:
+            self.strength += 2
+            self.strength_label.text = self.strength
