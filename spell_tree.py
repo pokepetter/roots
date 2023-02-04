@@ -3,9 +3,9 @@ from spells import Spells, rarity_colors
 
 class SpellTree(Entity):
     def __init__(self, enabled=False, **kwargs):
-        super().__init__(parent=camera.ui, enabled=enabled, **kwargs)
+        super().__init__(parent=camera.ui, enabled=enabled, z=-10, **kwargs)
         from draggable_orb import DraggableOrb
-        self.bg = Sprite('shore', parent=self, ppu=1080, color=hsv(0,0,0,.8), z=100)
+        self.bg = Sprite('shore', parent=self, ppu=1080, color=hsv(0,0,0,.9), z=2)
 
         combinations = [value for (key,value) in Spells.__dict__.items() if key.startswith('Combination_')]
         # print(combinations)
@@ -20,9 +20,10 @@ class SpellTree(Entity):
 
             spells = [value for (key,value) in combo.__dict__.items() if not key.startswith('_')]
             for s in spells:
-                print(' ', s.__name__)
-                orb.tooltip.text += f'<{rarity_colors[level-1]}>{s.__name__}\n'
-                orb.tooltip.text += f'<scale:.75>{s.description}'
+                print(' aaaaaa', s.__name__, rarity_colors[level-1])
+                orb.tooltip.text = f'<{rarity_colors[level-1]}>{s.__name__}<default>\n'
+                # orb.tooltip.text += f'<scale:.75>{s.description}'
+                print(orb.tooltip.raw_text)
 
             orb.tooltip.create_background()
 

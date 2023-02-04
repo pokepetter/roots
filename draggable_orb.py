@@ -17,6 +17,7 @@ class DraggableOrb(Draggable):
         self.start_position = self.position
 
     def drop(self):
+        from battle import Enemy
         mouse.update()
         entities_under_mouse = [hit_info.entity for hit_info in mouse.collisions]
         targets = [e for e in entities_under_mouse if isinstance(e, (Enemy, DraggableOrb)) and not e == self]

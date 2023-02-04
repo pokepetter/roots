@@ -139,10 +139,8 @@ class Enemy(Entity):
         destroy(self, delay=.1)
 
 
-from spells import get_spell_for_combination
-import spells
-from draggable_orb import DraggableOrb
 
+from draggable_orb import DraggableOrb
 
 class Battle(Entity):
     def __init__(self, **kwargs):
@@ -168,7 +166,9 @@ class Battle(Entity):
         self.orb_panel = Entity(parent=self.orb_parent, model='quad', texture='white_cube', color=color.light_gray, scale=(self.max_orbs,1), texture_scale=(self.max_orbs,1), z=1, origin_x=-.5)
 
         self.bag_icon = Button(parent=self.orb_parent, icon='bag', x=8, collider=None)
-        spell_tree = Entity()
+
+        from spell_tree import SpellTree
+        spell_tree = SpellTree()
         self.spell_tree_button = Button(parent=self.orb_parent, icon='rainbow', x=9.5, on_click=spell_tree.enable)
         self.fortitude_label = Button(parent=self.orb_parent, position=(2,1.25), text='fortitude:', tooltip=Tooltip('explain fortitude here'))
         self.strength_label =  Button(parent=self.orb_parent, position=(5,1.25), text='strength:', tooltip=Tooltip('explain strength here'))
