@@ -201,7 +201,7 @@ class Battle(Entity):
         PLAYER.shake(delay=.65, magnitude=.05)
         self.actions_counter.collision = False
         self.actions_counter.animate_scale_y(0)
-        PLAYER.damage(5)        # damage player
+        invoke(PLAYER.damage, 5, delay=.6)        # damage player
         self.turn_count += 1
         invoke(self.player_turn, delay=1.5)
 
