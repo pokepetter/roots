@@ -11,7 +11,9 @@ class Player(Entity):
         self._hp = max_health
         self.hp = max_health
 
+        self.block_bar = HealthBar(max_value=30, parent=self, y=-.45, scale=(.75,.045))
         self.block = 0
+
         self.strength = 0
         self.fortitude = 0
         self.temp_strength = 0
@@ -125,11 +127,11 @@ class Battle(Entity):
     def draw_orbs(self, amount):
         for i in range(amount):
             if (len(self.bag) == 0):
-                self.bag.append(self.discard)
+                self.bag.extend(self.discard)
                 self.discard.clear()
             if (len(self.hand) < self.max_orbs):
-                orb = self.bag.pop()
-                d = DraggableOrb(orb, parent=self.orb_parent, x=7)
+                orb_type = self.bag.pop()
+                d = DraggableOrb(orb_type, parent=self.orb_parent, x=7)
                 d.animate_x(i+.5)
                 self.hand.append(d)
                 self.reorder_orbs()
@@ -148,7 +150,7 @@ class Battle(Entity):
 
         if self.actions_left <= 0:
             for orb in self.hand:
-                self.discard.append(orb.orb_type)
+                self.discard.append(deepcopy(orb.orb_type))
                 destroy(orb)
             self.hand.clear()
             self.enemy_turn()

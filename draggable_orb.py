@@ -31,7 +31,7 @@ class DraggableOrb(Draggable):
         if isinstance(target, Enemy):
             print('USE ORB')
             self.spell.use(target, PLAYER, BATTLE)
-            BATTLE.discard.append(self)
+            BATTLE.discard.append(copy(self.orb_type))
             BATTLE.hand.remove(self)
             destroy(self)
             BATTLE.actions_left -= 1
