@@ -15,6 +15,8 @@ class Player(Entity):
         self.fortitude = 0
         self.temp_strength = 0
         self.temp_fortitude = 0
+        self.orb_draw_count = 5
+        self.orbs = self.create_starter_orbs()
 
     @property
     def hp(self):
@@ -57,6 +59,26 @@ class Player(Entity):
 
     def total_strength(self):
         return self.strength + self.temp_strength
+
+    def prepare_for_battle(self, battle):
+        self.block = 0
+        self.strength = 0
+        self.fortitude = 0
+        self.temp_strength = 0
+        self.temp_fortitude = 0
+
+    def prepare_for_new_turn(self, battle):
+        self.block = 0
+        self.temp_strength = 0
+        self.temp_fortitude = 0
+
+    def create_starter_orbs(self):
+        orbs = []
+        for i in range(5):
+            orbs.append([1,0,0])
+            orbs.append([0,1,0])
+            orbs.append([0,0,1])
+        return orbs
 
 class Enemy(Entity):
     def __init__(self, max_health, **kwargs):
@@ -149,6 +171,8 @@ class DraggableOrb(Draggable):
         if isinstance(target, Enemy):
             print('USE ORB')
             self.spell.use(target, PLAYER, BATTLE)
+            BATTLE.discard.append(self)
+            BATTLE.hand.remove(self)
             destroy(self)
             BATTLE.actions_left -= 1
             BATTLE.reorder_orbs()
@@ -170,6 +194,7 @@ class DraggableOrb(Draggable):
             target.orb_type = new_orb_type
 
             BATTLE.actions_left -= 1
+            BATTLE.hand.remove(self)
             destroy(self)
             BATTLE.reorder_orbs()
             return
@@ -214,34 +239,47 @@ class Battle(Entity):
             ]
         self.player = Player(parent=self, max_health=20)
         builtins.PLAYER = self.player
+        self.player.prepare_for_battle(self)
 
         self.max_actions = 3
         self.actions_left = self.max_actions
         self.actions_counter = Button(parent=self, scale=.1, text=f'<white>{self.actions_left} <gray>\nactions \nleft', y=-.25, color=color.violet)
         self.actions_counter.original_scale = self.actions_counter.scale
 
-        max_orbs = 7
-        self.orb_parent = Entity(parent=self, position=(-(max_orbs/2*.1),-.4), scale=.1)
-        self.orb_panel = Entity(parent=self.orb_parent, model='quad', texture='white_cube', color=color.light_gray, scale=(max_orbs,1), texture_scale=(max_orbs,1), z=1, origin_x=-.5)
+        self.max_orbs = 7
+        self.orb_parent = Entity(parent=self, position=(-(self.max_orbs/2*.1),-.4), scale=.1)
+        self.orb_panel = Entity(parent=self.orb_parent, model='quad', texture='white_cube', color=color.light_gray, scale=(self.max_orbs,1), texture_scale=(self.max_orbs,1), z=1, origin_x=-.5)
 
-        for i in range(7):
-            orb_type = [0,0,0]
-            for j in range(1):
-                orb_type[random.randint(0,2)] += 1
+        self.bag = self.player.orbs
+        self.hand = []
+        self.discard = []
+        self.player_turn()
 
-            d = DraggableOrb(orb_type, parent=self.orb_parent, x=i+.5)
-
+    def draw_orbs(self, amount):
+        for i in range(amount):
+            if (len(self.bag) == 0):
+                self.bag.append(self.discard)
+                self.discard.clear()
+            if (len(self.hand) < self.max_orbs):
+                orb = self.bag.pop()
+                d = DraggableOrb(orb, parent=self.orb_parent, x=i+.5)
+                self.hand.append(d)
+                self.reorder_orbs()
+            else:
+                return
 
     def on_enable(self):
         mouse.locked = False
         mouse.visible = True
 
-
     def reorder_orbs(self):
         self.actions_counter.text = f'<white>{self.actions_left} <gray>\nactions \nleft'
+
+        for i, orb in enumerate(self.hand):
+            orb.x = i+.5
+
         if self.actions_left <= 0:
             self.enemy_turn()
-
 
     def enemy_turn(self):
         print('enemy turn')
@@ -257,13 +295,12 @@ class Battle(Entity):
 
     def player_turn(self):
         print('player turn')
-        self.player.block = 0
-        self.player.temp_strength = 0
-        self.player.temp_fortitude = 0
+        self.player.prepare_for_new_turn(self)
         [setattr(e, 'ignore', False) for e in self.orb_parent.children]
         self.actions_counter.animate_scale_y(.1)
         self.actions_left = self.max_actions
         self.turn_count += 1
+        self.draw_orbs(self.player.orb_draw_count)
         self.reorder_orbs()
 
     def check_for_win(self):

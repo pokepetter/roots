@@ -55,13 +55,13 @@ class Spells:
 
     class Combination_011:
         class Spring:
-            description = 'Gain 5 Block'
+            description = 'Gain 4 Block'
             def use(enemy, player, battle):
                 player.block += 5 + player.total_fortitude()
 
     class Combination_002:
         class Stream:
-            description = 'Gain 3 Block, then 2 fortitude for the rest of this turn'
+            description = 'Gain 2 Block, then 2 fortitude for the rest of this turn'
             def use(enemy, player, battle):
                 player.block += 3 + player.total_fortitude()
                 player.temp_fortitude += 2
@@ -76,9 +76,9 @@ class Spells:
 # --------------------------------------------------------------------- level 3
     class Combination_300:
         class Light:
-            description = 'Deal ?? damage'
+            description = 'Deal 1 damage for each Orb in Discard'
             def use(enemy, player, battle):
-                enemy.hp -= 10
+                enemy.damage(len(battle.discard) + player.total_strength())
 
     class Combination_201:
         class Rainbow:
