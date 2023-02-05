@@ -27,7 +27,6 @@ class Spells:
             description = 'Gain 3 Block'
             def use(enemy, player, battle):
                 player.block += 3 + player.total_fortitude()
-                print("Gain 3 Block")
 
 # --------------------------------------------------------------------- level 2
     class Combination_200:
@@ -70,7 +69,7 @@ class Spells:
             description = 'Deal 2 damage and gain 1 Action'
             def use(enemy, player, battle):
                 enemy.damage(2 + player.total_strength())
-                battle.actions_left += 1
+                BATTLE.actions_left += 1
 
 # --------------------------------------------------------------------- level 3
     class Combination_300:
@@ -85,7 +84,7 @@ class Spells:
         class Rainbow:
             description = 'Draw 2 orbs, then deal 1 damage for each Orb in Hand'
             def use(enemy, player, battle):
-                battle.draw_orbs(2)
+                BATTLE.draw_orbs(2)
                 enemy.damage(len(battle.hand) + player.total_strength())
 
     class Combination_210:
@@ -100,14 +99,14 @@ class Spells:
         class Earth:
             description = 'Draw 2 orbs and Gain 1 Action'
             def use(enemy, player, battle):
-                battle.draw_orbs(2)
+                BATTLE.draw_orbs(2)
                 BATTLE.actions_left += 1
 
     class Combination_120:
         class Volcano:
             description = 'Deal 1 damage for each turn that has been, max 8'
             def use(enemy, player, battle):
-                damage = battle.turn_count
+                damage = BATTLE.turn_count
                 if (damage > 8):
                     damage = 8
                 enemy.damage(damage + player.total_strength())
@@ -116,7 +115,7 @@ class Spells:
         class Storm:
             description = 'Draw 2 orbs and gain 1 Fortitude'
             def use(enemy, player, battle):
-                battle.draw_orbs(2)
+                BATTLE.draw_orbs(2)
                 player.fortitude += 1
 
     class Combination_003:
@@ -124,7 +123,7 @@ class Spells:
             description = 'Gain 3 Block and gain 1 Action'
             def use(enemy, player, battle):
                 player.block += 3 + player.total_fortitude()
-                battle.actions_left += 1
+                BATTLE.actions_left += 1
 
 
     class Combination_102:
@@ -133,7 +132,7 @@ class Spells:
             def use(enemy, player, battle):
                 enemy.damage(1 + player.total_strength())
                 player.block += 2 + player.total_fortitude()
-                battle.actions_left += 1
+                BATTLE.actions_left += 1
 
 
     class Combination_012:

@@ -75,7 +75,11 @@ class Player(Entity):
         self._hp -= damage_taken
         if self._hp <= 0:
             print('YOU DIED!')
-
+            BATTLE.lose_screen.enabled = True
+            BATTLE.lose_screen.scale = 6
+            BATTLE.lose_screen.animate_scale(BATTLE.lose_screen.target_scale, duration=.4)
+            camera.overlay.animate_color(color.black, duration=.8, delay=.5, curve=curve.in_out_expo_boomerang)
+            BATTLE.enabled = False
 
     def heal(self, heal):
         self._hp += heal
@@ -122,6 +126,7 @@ class Battle(Entity):
 
         self.bg = Entity(parent=self, model='quad', texture='shore', scale_x=16/9, z=10, color=color._32)
         self.win_screen = Text(parent=self, scale=7, text='VICTORY!', rotation_z=15, origin=(0,0), z=-2, enabled=False, target_scale=7)
+        self.lose_screen = Text(parent=self, scale=7, text='You lose!', rotation_z=15, origin=(0,0), z=-2, enabled=False, target_scale=7)
         self.turn_count = 1
 
         self.enemies = [

@@ -1,7 +1,9 @@
 from ursina import *
 
 
-app = Ursina(forced_aspect_ratio=16/9)
+app = Ursina(forced_aspect_ratio=16/9, developer_mode=False, fullscreen=True, size=(1920, 1080))
+window.position=(0,0)
+window.size=(1920, 1080)
 
 window.color = color.black
 level = load_blender_scene('overgrown_temple',
@@ -32,11 +34,12 @@ class ThirdPersonController(Entity):
         mouse.locked = True
         mouse.visible = False
 
-        self.graphics = Entity(parent=self)
-        self.animator = Animator({
-            'run' :  Entity(model='cube', fps=16/2.083, texture='white_cube', parent=self.graphics),
-            'idle' : Entity(model='cube', texture='white_cube', parent=self.graphics),
-        })
+        self.graphics = Sprite('player', scale=.5, origin_y=-.5)
+
+        # self.animator = Animator({
+        #     'run' :  Entity(model='cube', fps=16/2.083, texture='white_cube', parent=self.graphics),
+        #     'idle' : Entity(model='cube', texture='white_cube', parent=self.graphics),
+        # })
         self.collider = 'box'
 
         for key, value in kwargs.items():
@@ -51,20 +54,22 @@ class ThirdPersonController(Entity):
 
         if self.current_speed:
             self.look_at_2d(self.position+direction, 'y')
-            self.animator.state = 'run'
-        else:
-            self.animator.state = 'idle'
+        #     self.animator.state = 'run'
+        # else:
+        #     self.animator.state = 'idle'
 
         self.position += self.forward * time.dt * self.speed * self.current_speed
         self.camera_parent.position = lerp(self.camera_parent.position, self.position + self.camera_offset, time.dt*self.camera_smoothing)
 
+        self.graphics.position = self.position
+        self.graphics.rotation_y = self.rotation_y *.2
 
-player = ThirdPersonController()
+player = ThirdPersonController(position=(0,0,-15))
 from ursina.trigger import Trigger
 
 class OverworldEnemy(Entity):
     def __init__(self, **kwargs):
-        super().__init__(model='wireframe_cube', collider='box', color=color.magenta, trigger_targets=[player, ], **kwargs)
+        super().__init__(model='quad', origin_y=-.5, scale=3, texture='knot', collider='box', trigger_targets=[player, ], **kwargs)
 
     def update(self):
         if self.intersects(player):
