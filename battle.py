@@ -47,6 +47,7 @@ class Player(Entity):
 
         if value <= 0:
             print('YOU DIED!')
+            BATTLE.enabled = False
 
         elif value > self.hp:
             print('HEAL :D')
@@ -154,14 +155,12 @@ class Battle(Entity):
         from spell_tree import SpellTree
         spell_tree = SpellTree()
         self.spell_tree_button = Button(parent=self.player_ui, model='circle', scale=.75, texture='rainbow', x=self.max_orbs+2.5, color=color.light_gray, on_click=spell_tree.enable)
-        self.fortitude_label = Button(parent=self.player_ui, position=(2,1.25), text=f'{self.player.fortitude} + {self.player.temp_fortitude}', tooltip=Tooltip('Fortitude increases Block gained'), color=color.gray)
-        self.strength_label =  Button(parent=self.player_ui, position=(5,1.25), text=f'{self.player.strength} + {self.player.temp_strength}', tooltip=Tooltip('Strength increases Damage dealt'), color=color.orange)
-        self.merge_result = Button(parent=self.player_ui, position=(-2,1.25), text='', Tooltip=Tooltip('The resulting spell if the chosen orbs are merged'), color=color.black66)
-        self.merge_result.scale_x = 4
+        self.fortitude_label = Button(parent=self.player_ui, position=(2,1.25), scale=(1,.4), text=f'{self.player.fortitude} + {self.player.temp_fortitude}', tooltip=Tooltip('Fortitude increases Block gained'), color=color.gray)
+        self.strength_label =  Button(parent=self.player_ui, position=(5,1.25), scale=(1,.4),text=f'{self.player.strength} + {self.player.temp_strength}', tooltip=Tooltip('Strength increases Damage dealt'), color=color.orange)
+        self.merge_result = Tooltip(parent=self, text='<gold>Combine into', background_color=color.black, enabled=False, z=-110)
 
         self.bag = self.player.orbs
         random.shuffle(self.bag)
-        self.player_turn()
 
 
     @property
@@ -185,12 +184,14 @@ class Battle(Entity):
         for i, orb_type in enumerate(orb_types_drawn):
             d = DraggableOrb(orb_type, parent=self.orb_parent, x=7)
             d.animate_x(i+.5)
+            invoke(ursfx, [(0.0, 1.0), (0.05, 0.49), (0.15, 0.42), (0.25, 0.07), (0.83, 0.0)], volume=0.75, wave='sine', pitch=9+i, speed=2.6, delay=i*.075)
 
         self.reorder_orbs()
 
     def on_enable(self):
         mouse.locked = False
         mouse.visible = True
+        self.player_turn()
 
     def reorder_orbs(self):
         self.actions_counter.text = f'<white>{self.actions_left} <gray>\nactions \nleft'
@@ -217,7 +218,7 @@ class Battle(Entity):
         # PLAYER.animate_position(Vec3(0,0,0), duration=.3, curve=curve.in_expo_boomerang)
 
         self.enemies[0].animate_position(lerp(self.enemies[0].position, (0,-.5), .1), duration=.3, curve=curve.in_expo_boomerang, delay=.5)
-        invoke(ursfx, [(0.0, 0.0), (0.1, 0.9), (0.15, 0.75), (0.38, 0.73), (0.8, 0.0)], volume=0.75, wave='noise', pitch=-13, pitch_change=-10, speed=4, delay=.5)
+        invoke(ursfx, [(0.0, 0.0), (0.1, 0.9), (0.15, 0.75), (0.38, 0.73), (0.8, 0.0)], volume=0.6, wave='noise', pitch=-13, pitch_change=-10, speed=4, delay=.5)
         PLAYER.shake(delay=.65, magnitude=.05)
         self.actions_counter.collision = False
         self.actions_counter.animate_scale_y(0)
