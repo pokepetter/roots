@@ -31,7 +31,7 @@ class Player(Entity):
 
 class Enemy(Entity):
     def __init__(self, **kwargs):
-        super().__init__(model='quad', collider='box', scale=(.3,.3), color=color.white, texture='rutabaga', name='enemy', **kwargs)
+        super().__init__(model='quad', collider='box', scale=(.3,.3), color=color.white, texture='knot', name='enemy', **kwargs)
         self.health_bar = HealthBar(scale_x=.2, world_parent=self, position=Vec3(-.1,.6,0))
         self.health_bar.x = -self.health_bar.scale_x / 2
         self.max_hp = 100
