@@ -32,22 +32,17 @@ class Spells:
 # --------------------------------------------------------------------- level 2
     class Combination_200:
         class Ray:
-            description = 'Deal 6 damage if enemy is below half health, otherwise deal 3'
+            description = 'Deal 2 damage twice'
             def use(enemy, player, battle):
-                if enemy.hp + enemy.hp < enemy.max_hp:
-                    enemy.damage(7 + player.total_strength())
-                else:
-                    enemy.damage(3 + player.total_strength())
-
-            def get_description(enemy, player, battle):
-                return f'Deal {6 + player.total_strength()} damage if enemy is below half health, otherwise deal 3'
+                enemy.damage(2 + player.total_strength())
+                enemy.damage(2 + player.total_strength())
 
     class Combination_110:
         class Mist:
-            description = 'Deal 3 damage, then gain 2 Strength this turn'
+            description = 'Deal 2 damage, then gain 3 Strength this turn'
             def use(enemy, player, battle):
-                enemy.damage(3 + player.total_strength())
-                player.temp_strength += 2
+                enemy.damage(2 + player.total_strength())
+                player.temp_strength += 3
 
     class Combination_020:
         class Root:
@@ -60,21 +55,21 @@ class Spells:
         class Spring:
             description = 'Gain 4 Block'
             def use(enemy, player, battle):
-                player.block += 5 + player.total_fortitude()
+                player.block += 4 + player.total_fortitude()
 
     class Combination_002:
         class Stream:
             description = 'Gain 2 Block, then gain 3 fortitude this turn'
             def use(enemy, player, battle):
-                player.block += 3 + player.total_fortitude()
-                player.temp_fortitude += 2
+                player.block += 2 + player.total_fortitude()
+                player.temp_fortitude += 3
 
     class Combination_101:
         class Spark:
-            description = 'Deal 2 damage twice'
+            description = 'Deal 2 damage and gain 1 Action'
             def use(enemy, player, battle):
                 enemy.damage(2 + player.total_strength())
-                enemy.damage(2 + player.total_strength())
+                battle.actions_left += 1
 
 # --------------------------------------------------------------------- level 3
     class Combination_300:
@@ -87,9 +82,10 @@ class Spells:
 
     class Combination_201:
         class Rainbow:
-            description = 'Draw 1 orb, then deal 1 damage for each Orb in Hand'
+            description = 'Draw 2 orbs, then deal 1 damage for each Orb in Hand'
             def use(enemy, player, battle):
-                battle.draw_orbs(1)
+                battle.draw_orbs(2)
+                enemy.damage(len(battle.hand) + player.total_strength())
 
     class Combination_210:
         class Desert:
@@ -101,18 +97,19 @@ class Spells:
 
     class Combination_030:
         class Earth:
-            description = 'Deal 2 Damage and Heal 1 for each Damage'
+            description = 'Draw 2 orbs and Gain 1 Action'
             def use(enemy, player, battle):
-                enemy.damage(2 + player.total_strength())
-                player.heal(2 + player.total_strength())
+                battle.draw_orbs(2)
+                BATTLE.actions_left += 1
 
     class Combination_120:
         class Volcano:
-            description = 'Double Strength, take 4 damage'
+            description = 'Deal 1 damage for each turn that has been, max 10'
             def use(enemy, player, battle):
-                player.strength = player.strength * 2
-                player.temp_strength = player.temp_strength * 2
-                player.damage(2)
+                damage = battle.turn_count
+                if (damage > 10):
+                    damage = 10
+                enemy.damage(damage + player.total_strength())
 
     class Combination_021:
         class Storm:
@@ -123,23 +120,24 @@ class Spells:
 
     class Combination_003:
         class Water:
-            description = 'Gain 2 Block and gain 1 Action'
+            description = 'Gain 3 Block and gain 1 Action'
             def use(enemy, player, battle):
-                player.block += 2 + player.total_fortitude()
+                player.block += 3 + player.total_fortitude()
                 battle.actions_left += 1
 
 
     class Combination_102:
         class Lightning:
-            description = 'Deal 3 damage and gain 1 Action'
+            description = 'Deal 1 damage, Gain 2 block and gain 1 Action'
             def use(enemy, player, battle):
-                enemy.damage(3 + player.total_strength())
+                enemy.damage(1 + player.total_strength())
+                player.block += 2 + player.total_fortitude()
                 battle.actions_left += 1
 
 
     class Combination_012:
         class Flood:
-            description = 'Gain 1 Block twice, then gain 1 Fortitude'
+            description = 'Gain 2 Block twice, then gain 1 Fortitude'
             def use(enemy, player, battle):
                 player.block += 1 + player.total_fortitude()
                 player.block += 1 + player.total_fortitude()
