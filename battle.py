@@ -125,7 +125,7 @@ class Battle(Entity):
         self.turn_count = 1
 
         self.enemies = [
-            Enemy(parent=self, max_health=100, y=.1),
+            Enemy(parent=self, max_health=150, y=.1),
             ]
         self.player = Player(parent=self, max_health=20)
         builtins.PLAYER = self.player

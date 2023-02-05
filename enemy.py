@@ -5,12 +5,16 @@ from ursina.prefabs.health_bar import HealthBar
 class Enemy(Entity):
     def __init__(self, max_health, **kwargs):
         super().__init__(model='quad', collider='box', scale=(.3,.3), color=color.white, texture='rutabaga', name='enemy', **kwargs)
-        self.health_bar = HealthBar(max_value=max_health, scale_x=.2, world_parent=self, position=Vec3(-.1,.6,0))
+        self.health_bar = HealthBar(max_value=max_health, scale_x=.3, world_parent=self, position=Vec3(-.1,.6,0))
         self.health_bar.x = -self.health_bar.scale_x / 2
+        self.block_bar = HealthBar(max_value=10, parent=self, scale_x=1, world_parent=self, position=Vec3(-.1,.6,0), color=color.clear, bar_color=hsv(0,0,1,.5), z=-1, show_text=False, show_lines=True, highlight_color=color.clear)
+        self.block_bar.bar.color = color.gray
+        self.block_bar.x = -self.health_bar.scale_x / 2
         self.max_hp = max_health
         self._hp = max_health
         self.hp = max_health
         self.block = 0
+        self._block = 0
         self.strength = 0
         self.enemy_ui = Entity(parent=self, position=(0.5,.5), scale=.2)
         self.strength_label = Button(parent=self.enemy_ui, position=(1,-1.25), text=f'{self.strength}', tooltip=Tooltip('Strength increases Damage dealt'), color=color.orange)
@@ -21,6 +25,16 @@ class Enemy(Entity):
     @property
     def hp(self):
         return self._hp
+        
+    @property
+    def block(self):
+        return self._block
+
+    @block.setter
+    def block(self, value):
+        value = clamp(value, 0, 30)
+        self.block_bar.value = value
+        self._block = value
 
     @hp.setter
     def hp(self, value):

@@ -20,7 +20,7 @@ class Spells:
             def use(enemy, player, battle):
                 enemy.damage(1 + player.total_strength())
                 player.heal(1)
-                player.block += 1
+                player.block += 1 + player.total_fortitude()
 
     class Combination_001:
         class Droplet:
@@ -53,8 +53,9 @@ class Spells:
 
     class Combination_011:
         class Spring:
-            description = 'Gain 4 Block'
+            description = 'Deal 1 damage and Gain 4 Block'
             def use(enemy, player, battle):
+                enemy.damage(1 + player.total_strength())
                 player.block += 4 + player.total_fortitude()
 
     class Combination_002:
@@ -74,10 +75,10 @@ class Spells:
 # --------------------------------------------------------------------- level 3
     class Combination_300:
         class Light:
-            description = 'Deal 2 damage twice then gain 1 Strength'
+            description = 'Deal 1 damage twice then gain 1 Strength'
             def use(enemy, player, battle):
-                enemy.damage(2 + player.total_strength())
-                enemy.damage(2 + player.total_strength())
+                enemy.damage(1 + player.total_strength())
+                enemy.damage(1 + player.total_strength())
                 player.strength += 1
 
     class Combination_201:
@@ -104,11 +105,11 @@ class Spells:
 
     class Combination_120:
         class Volcano:
-            description = 'Deal 1 damage for each turn that has been, max 10'
+            description = 'Deal 1 damage for each turn that has been, max 8'
             def use(enemy, player, battle):
                 damage = battle.turn_count
-                if (damage > 10):
-                    damage = 10
+                if (damage > 8):
+                    damage = 8
                 enemy.damage(damage + player.total_strength())
 
     class Combination_021:
@@ -137,7 +138,7 @@ class Spells:
 
     class Combination_012:
         class Flood:
-            description = 'Gain 2 Block twice, then gain 1 Fortitude'
+            description = 'Gain 1 Block twice, then gain 1 Fortitude'
             def use(enemy, player, battle):
                 player.block += 1 + player.total_fortitude()
                 player.block += 1 + player.total_fortitude()

@@ -55,7 +55,7 @@ class DraggableOrb(Draggable):
     def drag(self):
         self.start_position = self.position
         self.z = -10
-        ursfx([(0.0, 1.0), (0.13, 0.5), (0.16, 0.2), (0.41, 0.0), (1.0, 0.0)], volume=0.3, wave='sine', pitch=random.randint(12,16), speed=3.2)
+        #ursfx([(0.0, 1.0), (0.13, 0.5), (0.16, 0.2), (0.41, 0.0), (1.0, 0.0)], volume=0.3, wave='sine', pitch=random.randint(12,16), speed=3.2)
 
 
     def drop(self):
