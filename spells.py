@@ -9,124 +9,145 @@ make the spell randimization on startup feature, nor make enough spells in time.
 class Spells:
 # --------------------------------------------------------------------- level 1
     class Combination_100:
-        class Strike:
-            description = 'strike the enemy and deal 4 damage'
-            def use(enemy, player):
-                enemy.hp -= 4
+        class Photon:
+            description = 'Deal 4 damage'
+            def use(enemy, player, battle):
+                enemy.damage(4 + player.total_strength())
 
     class Combination_010:
-        class Block:
-            description = 'Gain 3 Block'
-            def use(enemy, player):
-                player.block += 3
-                print("Gain 3 Block")
+        class Seed:
+            description = 'Deal 1 damage and heal 1 and Gain 1 Block'
+            def use(enemy, player, battle):
+                enemy.damage(1 + player.total_strength())
+                player.heal(1)
+                player.block += 1
 
     class Combination_001:
-        class Drain:
-            description = 'Deal 2 damage and heal 1'
-            def use(enemy, player):
-                enemy.hp -= 2
-                player.hp += 1
+        class Droplet:
+            description = 'Gain 3 Block'
+            def use(enemy, player, battle):
+                player.block += 3 + player.total_fortitude()
+                print("Gain 3 Block")
 
 # --------------------------------------------------------------------- level 2
     class Combination_200:
         class Ray:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 2 damage twice'
+            def use(enemy, player, battle):
+                enemy.damage(2 + player.total_strength())
+                enemy.damage(2 + player.total_strength())
 
     class Combination_110:
         class Mist:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 2 damage, then gain 3 Strength this turn'
+            def use(enemy, player, battle):
+                enemy.damage(2 + player.total_strength())
+                player.temp_strength += 3
 
     class Combination_020:
         class Root:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Gain 1 Strength and Heal 1'
+            def use(enemy, player, battle):
+                player.strength += 1
+                player.heal(1)
 
     class Combination_011:
         class Spring:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Gain 4 Block'
+            def use(enemy, player, battle):
+                player.block += 4 + player.total_fortitude()
 
     class Combination_002:
         class Stream:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Gain 2 Block, then gain 3 fortitude this turn'
+            def use(enemy, player, battle):
+                player.block += 2 + player.total_fortitude()
+                player.temp_fortitude += 3
 
     class Combination_101:
         class Spark:
-            description = 'Deal 10 damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 2 damage and gain 1 Action'
+            def use(enemy, player, battle):
+                enemy.damage(2 + player.total_strength())
+                battle.actions_left += 1
 
 # --------------------------------------------------------------------- level 3
     class Combination_300:
         class Light:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 2 damage twice then gain 1 Strength'
+            def use(enemy, player, battle):
+                enemy.damage(2 + player.total_strength())
+                enemy.damage(2 + player.total_strength())
+                player.strength += 1
 
     class Combination_201:
         class Rainbow:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Draw 2 orbs, then deal 1 damage for each Orb in Hand'
+            def use(enemy, player, battle):
+                battle.draw_orbs(2)
+                enemy.damage(len(battle.hand) + player.total_strength())
 
     class Combination_210:
         class Desert:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Lose 2 Block and gain 2 Actions'
+            def use(enemy, player, battle):
+                if (player.block >= 2):
+                    player.block -= 2
+                    BATTLE.actions_left += 2
 
     class Combination_030:
         class Earth:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Draw 2 orbs and Gain 1 Action'
+            def use(enemy, player, battle):
+                battle.draw_orbs(2)
+                BATTLE.actions_left += 1
 
     class Combination_120:
         class Volcano:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 1 damage for each turn that has been, max 10'
+            def use(enemy, player, battle):
+                damage = battle.turn_count
+                if (damage > 10):
+                    damage = 10
+                enemy.damage(damage + player.total_strength())
 
     class Combination_021:
-        class Tsunami:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+        class Storm:
+            description = 'Draw 2 orbs and gain 1 Fortitude'
+            def use(enemy, player, battle):
+                battle.draw_orbs(2)
+                player.fortitude += 1
 
     class Combination_003:
         class Water:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Gain 3 Block and gain 1 Action'
+            def use(enemy, player, battle):
+                player.block += 3 + player.total_fortitude()
+                battle.actions_left += 1
 
 
     class Combination_102:
         class Lightning:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Deal 1 damage, Gain 2 block and gain 1 Action'
+            def use(enemy, player, battle):
+                enemy.damage(1 + player.total_strength())
+                player.block += 2 + player.total_fortitude()
+                battle.actions_left += 1
 
 
     class Combination_012:
         class Flood:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+            description = 'Gain 2 Block twice, then gain 1 Fortitude'
+            def use(enemy, player, battle):
+                player.block += 1 + player.total_fortitude()
+                player.block += 1 + player.total_fortitude()
+                player.fortitude += 1
 
     class Combination_111:
-        class Storm:
-            description = 'Deal ?? damage'
-            def use(enemy, player):
-                enemy.hp -= 10
+        class Life:
+            description = 'Gain 6 Block'
+            def use(enemy, player, battle):
+                player.block += 6 + player.total_fortitude()
 
 
 def get_spell_for_combination(combination=[1,0,0]):
@@ -135,34 +156,3 @@ def get_spell_for_combination(combination=[1,0,0]):
     return spell
 
 rarity_colors = ['white', 'lime', 'gold']
-
-if __name__ == '__main__':
-    from ursina import *
-    app = Ursina()
-    Sprite('shore', parent=camera.ui, ppu=1080, color=color._32, z=100)
-    from battle import DraggableOrb
-
-    combinations = [value for (key,value) in Spells.__dict__.items() if key.startswith('Combination_')]
-    # print(combinations)
-    orb_parent = Entity(parent=camera.ui, scale=.1, y=.25)
-    layers = [Entity(parent=orb_parent, y=-i*2) for i in range(3)]
-
-    for y, combo in enumerate(combinations):
-        level = sum([int(e) for e in combo.__name__[-3:]])
-        print(f'{combo.__name__}  (lvl: {level})')
-        orb = DraggableOrb([int(e) for e in combo.__name__[-3:]], parent=layers[level-1])
-        orb.tooltip.text = ''
-
-        spells = [value for (key,value) in combo.__dict__.items() if not key.startswith('_')]
-        for s in spells:
-            print(' ', s.__name__)
-            orb.tooltip.text += f'<{rarity_colors[level-1]}>{s.__name__}\n'
-            orb.tooltip.text += f'<scale:.75>{s.description}'
-
-        orb.tooltip.create_background()
-
-    for e in layers:
-        grid_layout(e.children, origin=(0,0,0), max_x=10)
-
-    EditorCamera()
-    app.run()

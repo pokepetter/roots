@@ -82,10 +82,17 @@ test_enemy = OverworldEnemy(position=(-3,0,4))
 import battle   # importing this creates global BATTLE
 
 
+overworld_music = Audio('roots_overworld', loop=True)
+battle_music = Audio('roots_battle', loop=False, autoplay=False, volume=.4)
+
+
 def enter_battle(enemy=test_enemy):
     print('enter battle')
-    camera.overlay.animate_color(color.clear, duration=.4)
-    BATTLE.enabled = True
+    overworld_music.fade(0, .05)
+    battle_music.play()
+    # battle_music.fade_in(duration=0)
+    camera.overlay.animate_color(color.clear, duration=1, delay=1)
+    invoke(BATTLE.enable, delay=1.5)
 
 
 def input(key):

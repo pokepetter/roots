@@ -3,17 +3,42 @@ import builtins
 
 from ursina.prefabs.health_bar import HealthBar
 class Player(Entity):
-    def __init__(self, **kwargs):
+    def __init__(self, max_health, **kwargs):
         super().__init__(**kwargs)
-        self.health_bar = HealthBar(parent=self, y=-.45, scale=(.75,.045))
+
+        self.health_bar = HealthBar(max_value=max_health, parent=self, y=-.455, scale=(.75,.04), color='#221612', bar_color='#8e0e2c', text_color=color.light_gray)
         self.health_bar.x = -self.health_bar.scale_x / 2
-        self.max_hp = 100
-        self._hp = self.max_hp
-        self.hp = self.max_hp
+        self.max_hp = max_health
+        self._hp = max_health
+        self.hp = max_health
+
+        self._block = 0
+        self.block = 0
+        self.block_bar = HealthBar(max_value=30, parent=self, y=-.45, scale=(.75,.045/3), color=color.clear, bar_color=hsv(0,0,1,.5), z=-1, show_text=False, show_lines=True, highlight_color=color.clear)
+        self.block_bar.x = -self.block_bar.scale_x / 2
+        self.block_bar.bar.color = color.gray
+        self.block_bar.value = 0
+
+        self.strength = 0
+        self.fortitude = 0
+        self.temp_strength = 0
+        self.temp_fortitude = 0
+        self.orb_draw_count = 5
+        self.orbs = self.create_starter_orbs()
 
     @property
     def hp(self):
         return self._hp
+
+    @property
+    def block(self):
+        return self._block
+
+    @block.setter
+    def block(self, value):
+        value = clamp(value, 0, 30)
+        self.block_bar.value = value
+        self._block = value
 
     @hp.setter
     def hp(self, value):
@@ -22,187 +47,196 @@ class Player(Entity):
 
         if value <= 0:
             print('YOU DIED!')
+            BATTLE.enabled = False
 
         elif value > self.hp:
             print('HEAL :D')
 
         self._hp = value
 
-
-class Enemy(Entity):
-    def __init__(self, **kwargs):
-        super().__init__(model='quad', collider='box', scale=(.3,.3), color=color.white, texture='knot', name='enemy', **kwargs)
-        self.health_bar = HealthBar(scale_x=.2, world_parent=self, position=Vec3(-.1,.6,0))
-        self.health_bar.x = -self.health_bar.scale_x / 2
-        self.max_hp = 100
-        self._hp = self.max_hp
-        self.hp = self.max_hp
-
     @property
-    def hp(self):
-        return self._hp
-
-    @hp.setter
-    def hp(self, value):
-        print(f'set enemy hp from {self._hp} to {value}')
-        value = clamp(value, 0, self.max_hp)
-        self.health_bar.value = value
-
-        if value < self._hp:
-            print('ow!')
-            self.blink(color.red, duration=.2)
-            self.shake(duration=.2, magnitude=.03)
-
-        if value <= 0:
-            BATTLE.enemies.remove(self)
-            BATTLE.check_for_win()
-            destroy(self, delay=.1)
-
-        elif value > self._hp:
-            print('heal enemy')
-
-        self._hp = value
+    def block(self):
+        return self._block
+    @block.setter
+    def block(self, value):
+        self._block = value
+        self.block_bar.value = value
 
 
-from orbs import *
-from spells import get_spell_for_combination
-import spells
 
-orb_colors = [color.orange, color.lime, color.azure]
-orb_shapes = ['quad', 'quad', 'circle']
-
-class DraggableOrb(Draggable):
-    def __init__(self, orb_type=[1,0,1], **kwargs):
-        super().__init__(model='quad', color=color.brown, highlight_color=color.brown, texture='orb', **kwargs)
-        self.sub_orbs = [Entity(parent=self, model='circle', z=-.001, scale=.25, color=hsv(20,.5,.25), position=pos) for pos in ((0,.2), (.15,-.1), (-.15,-.1))]
-        self.tooltip = Tooltip('...')
-
-        self.orb_type = orb_type
+    def damage(self, damage):
+        damage_taken = damage - self.block
+        if damage_taken < 0:
+            damage_taken = 0
+            self.block -= damage
+        else:
+            self.block = 0
+        self.health_bar.value -= damage_taken
+        self._hp -= damage_taken
+        if self._hp <= 0:
+            print('YOU DIED!')
 
 
-    def drag(self):
-        self.start_position = self.position
+    def heal(self, heal):
+        self._hp += heal
+        self.health_bar.value += heal
+        if (self._hp > self.max_hp):
+            self._hp = self.max_hp
+            self.health_bar.value = self.max_hp
 
-    def drop(self):
-        mouse.update()
-        entities_under_mouse = [hit_info.entity for hit_info in mouse.collisions]
-        targets = [e for e in entities_under_mouse if isinstance(e, (Enemy, DraggableOrb)) and not e == self]
+    def total_fortitude(self):
+        return self.fortitude + self.temp_fortitude
 
-        if not targets:
-            self.position = self.start_position
-            return
+    def total_strength(self):
+        return self.strength + self.temp_strength
 
+    def prepare_for_battle(self, battle):
+        self.block = 0
+        self.strength = 0
+        self.fortitude = 0
+        self.temp_strength = 0
+        self.temp_fortitude = 0
 
-        target = targets[0]
-        if isinstance(target, Enemy):
-            print('USE ORB')
-            self.spell.use(target, PLAYER)
-            destroy(self)
-            BATTLE.actions_left -= 1
-            BATTLE.reorder_orbs()
-            return
+    def prepare_for_new_turn(self, battle):
+        self.block = 0
+        self.temp_strength = 0
+        self.temp_fortitude = 0
 
-        if isinstance(target, DraggableOrb):
-            if BATTLE.actions_left <= 0:
-                self.position = self.start_position
-                return
-
-            if sum(target.orb_type) == 3:   # can't combine with a complete orb
-                print_on_screen('<red>ALREADY FULL', position=Vec3(mouse.position.xy, -10), origin=(0,-1))
-                self.position = self.start_position
-                return
-
-            print('COMBINE ORBS')
-            print_on_screen('COMBINE', position=Vec3(mouse.position.xy, -10), origin=(0,-1))
-            new_orb_type = [sum(e) for e in zip(target.orb_type, self.orb_type)]
-            target.orb_type = new_orb_type
-
-            BATTLE.actions_left -= 1
-            destroy(self)
-            BATTLE.reorder_orbs()
-            return
+    def create_starter_orbs(self):
+        orbs = []
+        for i in range(8):
+            orbs.append([1,0,0])
+            orbs.append([0,1,0])
+            orbs.append([0,0,1])
+        return orbs
 
 
-    @property
-    def orb_type(self):
-        return self._orb_type
-
-    @orb_type.setter
-    def orb_type(self, value):
-        self._orb_type = value
-        self.spell = get_spell_for_combination(value)
-
-        level = sum(value)
-        self.tooltip.text = f'<{spells.rarity_colors[level-1]}>{self.spell.__name__}\n<default>'
-        self.tooltip.text += f'<scale:.75>{self.spell.description}'
-        self.tooltip.create_background()
-
-        n = 0
-        for i, particle in enumerate(value):
-            for j in range(particle):
-                self.sub_orbs[n].color = orb_colors[i]
-                # self.sub_orbs[n].model = copy(orb_shapes[i])
-                n += 1
-
-        self.scale = 1.5
-        self.animate_scale(1, duration=.5)
-        print('set orb type to:', value)
-
-
+from enemy import Enemy
+from draggable_orb import DraggableOrb
 
 class Battle(Entity):
     def __init__(self, **kwargs):
         super().__init__(parent=camera.ui, enabled=False, **kwargs)
+        from ursina.prefabs.ursfx import ursfx
+        builtins.ursfx = ursfx
+
         self.bg = Entity(parent=self, model='quad', texture='shore', scale_x=16/9, z=10, color=color._32)
         self.win_screen = Text(parent=self, scale=7, text='VICTORY!', rotation_z=15, origin=(0,0), z=-2, enabled=False, target_scale=7)
+        self.turn_count = 1
 
         self.enemies = [
-            Enemy(parent=self, y=.1),
+            Enemy(parent=self, max_health=100, y=.1),
             ]
-        builtins.PLAYER = Player(parent=self)
+        self.player = Player(parent=self, max_health=20)
+        builtins.PLAYER = self.player
+        self.player.prepare_for_battle(self)
 
         self.max_actions = 3
         self.actions_left = self.max_actions
         self.actions_counter = Button(parent=self, scale=.1, text=f'<white>{self.actions_left} <gray>\nactions \nleft', y=-.25, color=color.violet)
         self.actions_counter.original_scale = self.actions_counter.scale
 
-        max_orbs = 7
-        self.orb_parent = Entity(parent=self, position=(-(max_orbs/2*.1),-.4), scale=.1)
-        self.orb_panel = Entity(parent=self.orb_parent, model='quad', texture='white_cube', color=color.light_gray, scale=(max_orbs,1), texture_scale=(max_orbs,1), z=1, origin_x=-.5)
+        self.max_orbs = 7
+        self.player_ui = Entity(parent=PLAYER, position=(-(self.max_orbs/2*.1),-.4), scale=.1)
+        self.orb_parent = Entity(parent=self.player_ui)
+        s = .22
+        self.orb_panel = Entity(parent=PLAYER, model='quad', texture='skill_bar', origin_y=-.5, y=-.5, scale=(s*8,s), z=1)
 
-        for i in range(5):
-            orb_type = [0,0,0]
-            for j in range(1):
-                orb_type[random.randint(0,2)] += 1
+        self.bag_icon = Entity(model='quad', parent=self.player_ui, texture='bag', x=self.max_orbs+1, collider='box', color=color.light_gray)
+        self.bag_orb_parent = Entity(parent=self.bag_icon, enabled=False)
+        self.bag_icon.on_mouse_enter = self.bag_orb_parent.enable
+        self.bag_icon.on_mouse_exit = self.bag_orb_parent.disable
 
-            d = DraggableOrb(orb_type, parent=self.orb_parent, x=i+.5)
+        for i in range(25): # max bag size
+            orb = DraggableOrb(parent=self.bag_orb_parent, scale=.5, ignore=True)
+        grid_layout(self.bag_orb_parent.children, max_x=5, origin=(0,0), offset=(0,1))
 
+
+        from spell_tree import SpellTree
+        spell_tree = SpellTree()
+        self.spell_tree_button = Button(parent=self.player_ui, model='circle', scale=.75, texture='rainbow', x=self.max_orbs+2.5, color=color.light_gray, on_click=spell_tree.enable)
+        self.fortitude_label = Button(parent=self.player_ui, position=(2,1.25), scale=(1,.4), text=f'{self.player.fortitude} + {self.player.temp_fortitude}', tooltip=Tooltip('Fortitude increases Block gained'), color=color.gray)
+        self.strength_label =  Button(parent=self.player_ui, position=(5,1.25), scale=(1,.4),text=f'{self.player.strength} + {self.player.temp_strength}', tooltip=Tooltip('Strength increases Damage dealt'), color=color.orange)
+        self.merge_result = Tooltip(parent=self, text='<gold>Combine into', background_color=color.black, enabled=False, z=-110)
+
+        self.bag = self.player.orbs
+        random.shuffle(self.bag)
+
+
+    @property
+    def bag(self):
+        return self._bag
+    @bag.setter
+    def bag(self, value):
+        self._bag = value
+        [e.disable() for e in self.bag_orb_parent.children]
+        for i, orb_type in enumerate(value):
+            self.bag_orb_parent.children[i].enabled = True
+            self.bag_orb_parent.children[i].orb_type = orb_type
+
+
+    def draw_orbs(self, amount):
+        amount = min(amount, len(self.bag)-1)
+
+        orb_types_drawn = self.bag[:amount] # get copy of top 5
+        self.bag = self.bag[amount:]    # remove top 5
+
+        for i, orb_type in enumerate(orb_types_drawn):
+            d = DraggableOrb(orb_type, parent=self.orb_parent, x=7)
+            d.animate_x(i+.5)
+            invoke(ursfx, [(0.0, 1.0), (0.05, 0.49), (0.15, 0.42), (0.25, 0.07), (0.83, 0.0)], volume=0.75, wave='sine', pitch=9+i, speed=2.6, delay=i*.075)
+
+        self.reorder_orbs()
 
     def on_enable(self):
         mouse.locked = False
         mouse.visible = True
-
+        self.player_turn()
 
     def reorder_orbs(self):
         self.actions_counter.text = f'<white>{self.actions_left} <gray>\nactions \nleft'
+
+        for i, orb in enumerate(self.orb_parent.children):
+            orb.animate_x(i+.5, duration=abs(orb.x-(i+.5))*.1)
+
+        self.check_for_win()
         if self.actions_left <= 0:
+            for orb in self.orb_parent.children:
+                self.bag.append(orb.orb_type)
+                destroy(orb)
             self.enemy_turn()
 
 
     def enemy_turn(self):
         print('enemy turn')
+        if (len(self.enemies) == 0):
+            self.check_for_win()
+            return
+        for enemy in self.enemies:
+            enemy.block = 0
         [setattr(e, 'ignore', True) for e in self.orb_parent.children]
-        PLAYER.animate_position(Vec3(0,0,0), duration=.3, curve=curve.in_expo_boomerang)
+        # PLAYER.animate_position(Vec3(0,0,0), duration=.3, curve=curve.in_expo_boomerang)
+
+        self.enemies[0].animate_position(lerp(self.enemies[0].position, (0,-.5), .1), duration=.3, curve=curve.in_expo_boomerang, delay=.5)
+        invoke(ursfx, [(0.0, 0.0), (0.1, 0.9), (0.15, 0.75), (0.38, 0.73), (0.8, 0.0)], volume=0.6, wave='noise', pitch=-13, pitch_change=-10, speed=4, delay=.5)
+        PLAYER.shake(delay=.65, magnitude=.05)
         self.actions_counter.collision = False
         self.actions_counter.animate_scale_y(0)
-        PLAYER.hp -= 10        # damage player
-        invoke(self.player_turn, delay=1)
+        enemy = self.enemies[0]
+        enemy.do_next_move(self.turn_count)
+        self.turn_count += 1
+        enemy.update_next_move_text(self.turn_count)
+        invoke(self.player_turn, delay=1.5)
 
     def player_turn(self):
         print('player turn')
+        self.check_for_win()
+        self.player.prepare_for_new_turn(self)
+        self.update_gui()
         [setattr(e, 'ignore', False) for e in self.orb_parent.children]
         self.actions_counter.animate_scale_y(.1)
         self.actions_left = self.max_actions
+        self.draw_orbs(self.player.orb_draw_count)
         self.reorder_orbs()
 
     def check_for_win(self):
@@ -218,7 +252,9 @@ class Battle(Entity):
     def on_disable(self):
         camera.z = -15
 
-
+    def update_gui(self):
+        self.fortitude_label.text = f'{self.player.fortitude} + {self.player.temp_fortitude}'
+        self.strength_label.text = f'{self.player.strength} + {self.player.temp_strength}'
 
 if __name__ == '__main__':
     app = Ursina(forced_aspect_ratio=16/9)
