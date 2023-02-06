@@ -1,7 +1,7 @@
 from ursina import *
 
 
-app = Ursina(forced_aspect_ratio=16/9, development_mode=True)
+app = Ursina(forced_aspect_ratio=16/9)
 window.color = color.black
 
 
