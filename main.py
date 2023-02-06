@@ -1,13 +1,12 @@
 from ursina import *
 
 
-app = Ursina(forced_aspect_ratio=16/9, developer_mode=False, fullscreen=True, size=(1920, 1080))
-window.position=(0,0)
-window.size=(1920, 1080)
-
+app = Ursina(forced_aspect_ratio=16/9, development_mode=True)
 window.color = color.black
+
+
 level = load_blender_scene('overgrown_temple',
-    reload=False,
+    # reload=True,
     normals=False,
     uvs=False,
     decimals=2
